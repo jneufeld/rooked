@@ -1,0 +1,8 @@
+I started hacking this up in the summer but since school started I haven't had
+any time to finish it. The engine is somewhat finished but there's no AI yet.
+It's designed to hook up with XBoard, but there's a silly command line version
+that can be used to help debugging. Heads up, this isn't very functional.
+
+A lot of the code needs to be chopped. Making an engine that understands the
+rules of chess is tricky, as it turns out, so there's some ugly code up right
+now. Sorry :(. And yes, there are far too many comments.
