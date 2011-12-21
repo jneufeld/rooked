@@ -61,7 +61,7 @@ int  game_over ();
 /* Function prototypes for engine.c.  */
 void clean_buffer ();
 void get_input ();
-int  init_game ();
+void init_game ();
 void play_game ();
 void play_cli_game ();
 void play_test_game ();

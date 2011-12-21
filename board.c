@@ -1,4 +1,3 @@
-/* Include the chess piece enumerations and function prototypes.  */
 #include "proto.h"
 #include <stdio.h>
 
@@ -6,8 +5,7 @@
 #define BOARD_SIZE 128
 int board[BOARD_SIZE];
 
-/* Place all pieces in default start position. Also reset game state,
- * like en passent, move count, castling rights, etc.  */
+/* Place all pieces in default start position and reset game state.  */
 void reset_board () 
 {
     /* Clear board completely, just fill it with null pieces.  */
@@ -39,33 +37,44 @@ void reset_board ()
 }
 
 /* Print the board to the console in crude manner. This is strictly for
- * debugging purposes, as the program will always be run through the XBoard
- * GUI.  */
+ * debugging purposes, as the program will always be run through the XBoard GUI.
+ */
 void print_board () 
 {
-    char display[] = { 'k', 'q', 'b', 'n', 'r', 'p', ' ',
-        'P', 'R', 'N', 'B', 'Q', 'K' };
+    /* Represent each piece by a character. Capitalized pieces are white.  */
+    char piece_codes[] = { 'k', 'q', 'b', 'n', 'r', 'p', ' ', 'P', 'R', 'N', 
+    'B', 'Q', 'K' };
 
-    /* Print the numerical value of each piece, i.e. 0 is the null
-     * piece and -6 is the black king, for each board square. Make
-     * sure to skip the right side of the board since we're using
-     * 0x88.  */
     printf ("\n  | a | b | c | d | e | f | g | h |\n");
     printf ("-----------------------------------\n");
 
-    int i, j, m = 8;
+    /* J moves along the 8 files of the board, I moves down the ranks. Since
+     * the piece at I + J is printed, I begins at the top left and is
+     * decremented by 16 to move down a rank (0x88 board has 16 files).  */
+    int i, j, row_num = 8;
     for (i = 112; i >= 0; i -= 16) {
-        printf ("%d | ", m--);
+        printf ("%d | ", row_num--);
         for (j = 0; j < 8; j++) {
-            printf ("%c | ", display[(chp_bking * -1) + board[i + j]]);
+            printf ("%c | ", piece_codes[(chp_bking * -1) + board[i + j]]);
         }
         printf ("\n-----------------------------------\n");
     }
 }
 
+/* Return FALSE if SQUARE is on the right side of the 0x88 board, i.e. it's not
+ * a valid move.  */
+int valid_x88_move (int square)
+{
+    if ((square & 0x88) != 0) {
+        return FALSE;
+    }       
+    return TRUE;
+}
+
 /* Return FALSE if the argument SQUARE falls outside the bounds of the board
- * array.  */
-int test_square (int square)
+ * array or if SQUARE is on the right side of the board, it's not a valid move
+ * move on the 0x88 board.  */
+int square_on_board (int square)
 {
     if (square >= BOARD_SIZE || square < 0) {
         return FALSE;
@@ -73,52 +82,41 @@ int test_square (int square)
     return TRUE;
 }
 
-/* Return TRUE if board[square] has a piece in it, otherwise return FALSE.  */
+/* Return TRUE if the board contains a piece at index SQUARE.  */
 int square_is_occupied (int square) 
 {
-    /* If the given square is outside the bounds of the array we'd
-     * better just return false before something nasty happens.  */
-    if (test_square (square) == FALSE) {
-        return FALSE;
-    }
-
-    /* Return true if the square does not contain the null piece.  */
     return (board[square] == chp_null) ? FALSE : TRUE;
 }
 
-/* Return TRUE if board[square] contains a piece owned by player.  */
-int is_players_piece (int player, int square)
+/* Return TRUE if board contains a piece owned by PLAYER at index SQUARE.  */
+int contains_players_piece (int player, int square)
 {
-    if (test_square (square) == FALSE || square_is_occupied (square) == FALSE) {
-        return FALSE;
-    } else if (player == WPLAYER && board[square] > 0) {
+    if (player == WPLAYER && board[square] > 0) {
         return TRUE;
     } else if (player == BPLAYER && board[square] < 0) {
         return TRUE;
     }
-
     return FALSE;
 }
 
 /* Attempt to move piece at START_SQUARE into END_SQUARE. This will perform
  * lots of checks to make sure the move is legal. No outside checking of a 
  * move's legality is necessary from the outside. Simply attempting to make 
- * the move will result in either the move being made, in which case FALSE is
- * return, or returning TRUE, meaning the move is illegal.  */
+ * the move will result in either the move being made, in which case TRUE is
+ * returned, or returning FALSE, meaning the move is illegal.  */
 int make_move (int player, int start_square, int end_square) 
 {
-    /* Check that START_SQUARE has a piece and that it belongs to
-     * the player.  */
-    if (square_is_occupied (start_square) == FALSE
-        || is_players_piece (player, start_square) == FALSE) {
-        printf ("Error: Start position %d - %d\n", start_square, end_square);
+    /* START_SQUARE must be on board and contain a player's piece.  */
+    if (square_on_board (start_square) == FALSE 
+        || contains_players_piece (player, start_square) == FALSE) {
+        printf ("Error: invalid start_square %d\n", start_square);
         return FALSE;
     }
 
-    /* Check that END_SQUARE is on the actual board, not the right
-     * side board from the 0x88 representation.  */
-    if ((end_square & 0x88) != 0) {
-        printf ("Error: End positon %d - %d/n", start_square, end_square);
+    /* END_SQUARE must be valid 0x88 board index and on board. */
+    if (valid_x88_move (end_square) == FALSE
+        || square_on_board (end_square) == FALSE) {
+        printf ("Error: invalid end_square %d\n", end_square);
         return FALSE;
     }
 
@@ -239,7 +237,7 @@ int is_legal_move (int player, int start_square, int end_square)
 
             /* If the square we're trying to check is outside the
              * bounds of the array, just skip it.  */
-            if (test_square (square) == FALSE) {
+            if (square_on_board (square) == FALSE) {
                 continue;
             }
 
@@ -251,7 +249,7 @@ int is_legal_move (int player, int start_square, int end_square)
 
             /* The move is legal.  */
             if (square == end_square 
-                && is_players_piece (player, square) == FALSE) {
+                && contains_players_piece (player, square) == FALSE) {
                 return TRUE;
             }
         }

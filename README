@@ -1,3 +1,4 @@
+=== Quick Intro ===
 I started hacking this up in the summer but since school started I haven't had
 any time to finish it. The engine is somewhat finished but there's no AI yet.
 It's designed to hook up with XBoard, but there's a silly command line version
@@ -6,3 +7,13 @@ that can be used to help debugging. Heads up, this isn't very functional.
 A lot of the code needs to be chopped. Making an engine that understands the
 rules of chess is tricky, as it turns out, so there's some ugly code up right
 now. Sorry :(. And yes, there are far too many comments.
+
+=== Goals ===
+Nothing too fancy, but a simple negascout implementation for the AI is what I
+want. I don't want to implement en passent and castling until I have a working
+AI, because that's more tedious and boring code -- there's enough of that in the
+engine already.
+
+=== TODO ===
+ * Combine/redo is_legal_move and make_delta
+ * Implement game_over
