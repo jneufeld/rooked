@@ -51,6 +51,11 @@ enum ch_piece {
 void print_board ();
 void reset_board ();
 int  square_is_occupied (int);
+void gen_legal_moves (int, int, int *); 
+void gen_wpawn_moves (int, int *);
+void gen_bpawn_moves (int, int *);
+void gen_knight_moves (int, int, int *);
+void gen_king_moves (int, int, int *);
 int  is_players_piece (int, int);
 int  make_move (int, int, int);
 int  is_legal_move (int, int, int);

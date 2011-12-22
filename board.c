@@ -3,6 +3,7 @@
 
 /* Use 0x88 representation for the chess board.  */
 #define BOARD_SIZE 128
+#define MAX_MOVES  64
 int board[BOARD_SIZE];
 
 /* Place all pieces in default start position and reset game state.  */
@@ -14,8 +15,7 @@ void reset_board ()
         board[i] = chp_null;
     }
 
-    /* Place black pawns in indices 96 - 103 and white pawns in
-     * 16 - 23.  */
+    /* Place black pawns in indices 96 - 103 and white pawns in 16 - 23.  */
     for (i = 16; i < 16 + 8; i++) {
         board[i] = chp_wpawn;
         board[i + 80] = chp_bpawn;
@@ -36,9 +36,7 @@ void reset_board ()
     board[116] = chp_bking;
 }
 
-/* Print the board to the console in crude manner. This is strictly for
- * debugging purposes, as the program will always be run through the XBoard GUI.
- */
+/* Print a crude command line version of the board. Just for debugging.  */
 void print_board () 
 {
     /* Represent each piece by a character. Capitalized pieces are white.  */
@@ -61,164 +59,93 @@ void print_board ()
     }
 }
 
-/* Return FALSE if SQUARE is on the right side of the 0x88 board, i.e. it's not
- * a valid move.  */
-int valid_x88_move (int square)
+/* Return FALSE if POS is on the right side of the 0x88 board.  */ 
+int valid_x88_move (int pos)
 {
-    if ((square & 0x88) != 0) {
+    if ((pos & 0x88) != 0) {
         return FALSE;
     }       
     return TRUE;
 }
 
-/* Return FALSE if the argument SQUARE falls outside the bounds of the board
- * array or if SQUARE is on the right side of the board, it's not a valid move
- * move on the 0x88 board.  */
-int square_on_board (int square)
+/* Return FALSE if POS is outside bounds of the board.  */
+int square_on_board (int pos)
 {
-    if (square >= BOARD_SIZE || square < 0) {
+    if (pos >= BOARD_SIZE || pos < 0) {
         return FALSE;
     }
     return TRUE;
 }
 
-/* Return TRUE if the board contains a piece at index SQUARE.  */
-int square_is_occupied (int square) 
+/* Return TRUE if the board contains any piece at index POS.  */
+int square_is_occupied (int pos) 
 {
-    return (board[square] == chp_null) ? FALSE : TRUE;
+    return (board[pos] == chp_null) ? FALSE : TRUE;
 }
 
-/* Return TRUE if board contains a piece owned by PLAYER at index SQUARE.  */
-int contains_players_piece (int player, int square)
+/* Return TRUE if board contains a piece owned by PLAYER at index POS.  */
+int contains_players_piece (int player, int pos)
 {
-    if (player == WPLAYER && board[square] > 0) {
+    if (player == WPLAYER && board[pos] > 0) {
         return TRUE;
-    } else if (player == BPLAYER && board[square] < 0) {
+    } else if (player == BPLAYER && board[pos] < 0) {
         return TRUE;
     }
     return FALSE;
 }
 
-/* Attempt to move piece at START_SQUARE into END_SQUARE. This will perform
- * lots of checks to make sure the move is legal. No outside checking of a 
- * move's legality is necessary from the outside. Simply attempting to make 
- * the move will result in either the move being made, in which case TRUE is
- * returned, or returning FALSE, meaning the move is illegal.  */
-int make_move (int player, int start_square, int end_square) 
+/* Perform checks on a move's legality and return TRUE if the move is made.  */
+int make_move (int player, int start_pos, int end_pos) 
 {
-    /* START_SQUARE must be on board and contain a player's piece.  */
-    if (square_on_board (start_square) == FALSE 
-        || contains_players_piece (player, start_square) == FALSE) {
-        printf ("Error: invalid start_square %d\n", start_square);
+    /* START_POS must be on board and contain a player's piece.  */
+    if (square_on_board (start_pos) == FALSE 
+        || contains_players_piece (player, start_pos) == FALSE) {
+        printf ("Error: invalid start_pos %d\n", start_pos);
         return FALSE;
     }
 
-    /* END_SQUARE must be valid 0x88 board index and on board. */
-    if (valid_x88_move (end_square) == FALSE
-        || square_on_board (end_square) == FALSE) {
-        printf ("Error: invalid end_square %d\n", end_square);
+    /* END_POS must be valid 0x88 board index and on board. */
+    if (valid_x88_move (end_pos) == FALSE
+        || square_on_board (end_pos) == FALSE) {
+        printf ("Error: invalid end_pos %d\n", end_pos);
         return FALSE;
     }
 
     /* Check that the move is legal for the given piece.  */
-    if (is_legal_move (player, start_square, end_square) == FALSE) {
-        printf ("Error: Illegal move %d - %d\n", start_square, end_square);
+    if (is_legal_move (player, start_pos, end_pos) == FALSE) {
+        printf ("Error: Illegal move %d - %d\n", start_pos, end_pos);
         return FALSE;
     }
 
-     /* The is_legal_move function should ensure the move doesn't
-     * capture the player's own piece.  */
-    int piece = board[start_square];
-    board[start_square] = chp_null;
-    board[end_square]   = piece;
+    int piece = board[start_pos];
+    board[start_pos] = chp_null;
+    board[end_pos]   = piece;
     return TRUE;
 }
 
-/* Check if the move is legal for the specified piece by comparing it's delta
- * with START_SQUARE and END_SQUARE. The delta array is created for each piece
- * to indicate which squares it can move into from it's current position. More
- * information on how it works is provided in the make_delta function. Return
- * TRUE if the move is legal, otherwise return FALSE. Any function that calls
- * this should check if START_SQUARE contains the players piece, or any piece
- * at all, so there is no need to check again.  */
-int is_legal_move (int player, int start_square, int end_square) 
+/* Generate legal moves for piece at START_POS and store in MOVES_ARRAY.  */
+void gen_legal_moves (int player, int start_pos, int *moves_array) 
 {
-    /* For simple (minor) pieces, check if the argument end_square
-     * is in the piece's delta. If it is, the move is legal.  */
-    switch (board[start_square]) {
-
-        /* White pawn can move up one square, one up diagonally to attack
-         * or two up if it hasn't moved yet.  */
+    switch (board[start_pos]) {
         case chp_wpawn:
-            if (MOVE_UP + start_square == end_square) {
-                return TRUE;
-            }
-            if ( (start_square > 15 && start_square < 24)
-                && (MOVE_UP + start_square + MOVE_UP == end_square)
-                && (square_is_occupied (MOVE_UP + start_square) == FALSE) ) {
-                return TRUE;
-            }
-            if ( (MOVE_DU_RIGHT + start_square == end_square
-                    && board[end_square] <= chp_bpawn) 
-                || (MOVE_DU_LEFT + start_square == end_square
-                    && board[end_square] <= chp_bpawn) ) {
-                return TRUE;
-            }
-            /* None of the legal moves matched, so move is illegal.  */
-            return FALSE;
+            gen_wpawn_moves (start_pos, moves_array); 
+            break;
 
-        /* Black pawn can move down one square, one down diagonally to attack
-         * or two down if it hasn't moved yet.  */
         case chp_bpawn:
-            if (MOVE_DOWN + start_square == end_square) {
-                return TRUE;
-            }
-            if ( (start_square > 95 && start_square < 104)
-                && (MOVE_DOWN + start_square + MOVE_DOWN == end_square)
-                && (square_is_occupied (MOVE_DOWN + start_square) == FALSE) ) {
-                return TRUE;
-            }
-            if ( (MOVE_DD_RIGHT + start_square == end_square
-                    && board[end_square] >= chp_wpawn)
-                || (MOVE_DD_LEFT + start_square == end_square
-                    && board[end_square] >= chp_wpawn) ) {
-                return TRUE;
-            }
-            /* None of the legal moves matched, so move is illegal.  */
-            return FALSE;
+            gen_bpawn_moves (start_pos, moves_array);
+            break;
 
-        /* White knight has funky moves, same as black knight so group them
-         * together.  */
         case chp_wknight:
         case chp_bknight:
-            if ( (MOVE_K_URV + start_square == end_square)
-                || (MOVE_K_URH + start_square == end_square)
-                || (MOVE_K_DRH + start_square == end_square)
-                || (MOVE_K_DRV + start_square == end_square)
-                || (MOVE_K_DLV + start_square == end_square)
-                || (MOVE_K_DLH + start_square == end_square)
-                || (MOVE_K_ULH + start_square == end_square)
-                || (MOVE_K_ULV + start_square == end_square) ) {
-                return TRUE;
-            }
-            /* None of the legal moves matched, so move is illegal.  */
-            return FALSE;
+            gen_knight_moves (player, start_pos, moves_array);
+            break;
 
         /* White king can move one space in any direction, same as black king
          * so group them together.  */
         case chp_wking:
         case chp_bking:
-            if ( (MOVE_UP + start_square == end_square)
-                || (MOVE_DU_RIGHT + start_square == end_square)
-                || (MOVE_DD_RIGHT + start_square == end_square)
-                || (MOVE_DOWN + start_square == end_square)
-                || (MOVE_DD_LEFT + start_square == end_square)
-                || (MOVE_LEFT + start_square == end_square) 
-                || (MOVE_DU_LEFT + start_square == end_square) ) {
-                return TRUE;
-            }
-            /* None of the legal moves matched, so move is illegal.  */
-            return FALSE;
+            gen_king_moves (player, start_pos, moves_array);
+            break;
     }
     
     /* Sliding pieces require a special loop to compare the argument
@@ -254,9 +181,130 @@ int is_legal_move (int player, int start_square, int end_square)
             }
         }
     }
-    return FALSE;
 }
 
+/* TRUE if move from START_POS to END_POS by PLAYER is legal.  */
+int is_legal_move (int player, int start_pos, int end_pos) 
+{
+    int legal_moves[MAX_MOVES], i;
+    for (i = 0; i < MAX_MOVES; i++) {
+        legal_moves[i] = FALSE;
+    }
+
+    gen_legal_moves (player, start_pos, legal_moves);
+
+    return legal_moves[end_pos];
+}
+
+void gen_wpawn_moves (int start_pos, int *moves_array)
+{
+    int up_one = MOVE_UP + start_pos;
+    if (square_is_occupied (up_one) == FALSE) {
+        moves_array[up_one] = TRUE;
+    }
+
+    int up_two = MOVE_UP + MOVE_UP + start_pos;
+    if ((start_pos > 15 && start_pos < 24)
+        && (square_is_occupied (up_one) == FALSE)
+        && (square_is_occupied (up_two) == FALSE) ) {
+            moves_array[up_two] = TRUE;
+    }
+
+    int up_right = MOVE_DU_RIGHT + start_pos;
+    if (board[up_right] <= chp_bpawn) {
+        moves_array[up_right] = TRUE;
+    }
+
+    int up_left  = MOVE_DU_LEFT + start_pos;
+    if (board[up_left] <= chp_bpawn) {
+        moves_array[up_left] = TRUE;
+    } 
+}
+
+void gen_bpawn_moves (int start_pos, int *moves_array)
+{
+    int down_one = MOVE_DOWN + start_pos;
+    if (square_is_occupied (down_one) == FALSE) {
+        moves_array[down_one] = TRUE;
+    }
+
+    int down_two = MOVE_DOWN + MOVE_DOWN + start_pos;
+    if ((start_pos > 95 && start_pos < 104)
+        && (square_is_occupied (down_one) == FALSE)
+        && (square_is_occupied (down_two) == FALSE) ) {
+            moves_array[down_two] = TRUE;
+    }
+
+    int down_right = MOVE_DD_RIGHT + start_pos;
+    if (board[down_right] >= chp_wpawn) {
+        moves_array[down_right] = TRUE;
+    }
+
+    int down_left  = MOVE_DD_LEFT + start_pos;
+    if (board[down_left] >= chp_wpawn) {
+        moves_array[down_left] = TRUE;
+    } 
+}
+
+void gen_knight_moves (int player, int start_pos, int *moves_array)
+{
+    int mod = (player == BPLAYER) ? -1 : 1;
+
+    if (board[MOVE_K_URV + start_pos] >= chp_null * mod) {
+        moves_array[MOVE_K_URV + start_pos] = TRUE;
+    }
+    if (board[MOVE_K_URH + start_pos] >= chp_null * mod) {
+        moves_array[MOVE_K_URH + start_pos] = TRUE;
+    }
+    if (board[MOVE_K_DRH + start_pos] >= chp_null * mod) {
+        moves_array[MOVE_K_DRH + start_pos] = TRUE;
+    }
+    if (board[MOVE_K_DRV + start_pos] >= chp_null * mod) {
+        moves_array[MOVE_K_DRV + start_pos] = TRUE;
+    }
+    if (board[MOVE_K_DLV + start_pos] >= chp_null * mod) {
+        moves_array[MOVE_K_DLV + start_pos] = TRUE;
+    }
+    if (board[MOVE_K_DLH + start_pos] >= chp_null * mod) {
+        moves_array[MOVE_K_DLH + start_pos] = TRUE;
+    }
+    if (board[MOVE_K_ULH + start_pos] >= chp_null * mod) {
+        moves_array[MOVE_K_ULH + start_pos] = TRUE;
+    }
+    if (board[MOVE_K_ULV + start_pos] >= chp_null * mod) {
+        moves_array[MOVE_K_ULV + start_pos] = TRUE;
+    }
+}
+
+void gen_king_moves (int player, int start_pos, int *moves_array)
+{
+    int mod = (player == BPLAYER) ? -1 : 1;
+    
+    if (board[MOVE_UP + start_pos] >= chp_null * mod) {
+        moves_array[MOVE_UP + start_pos] = TRUE;
+    }
+    if (board[MOVE_RIGHT + start_pos] >= chp_null * mod) {
+        moves_array[MOVE_RIGHT + start_pos] = TRUE;
+    }
+    if (board[MOVE_DU_RIGHT + start_pos] >= chp_null * mod) {
+        moves_array[MOVE_DU_RIGHT + start_pos] = TRUE;
+    }  
+    if (board[MOVE_DD_RIGHT + start_pos] >= chp_null * mod) {
+        moves_array[MOVE_DD_RIGHT + start_pos] = TRUE;
+    }
+    if (board[MOVE_DOWN + start_pos] >= chp_null * mod) {
+        moves_array[MOVE_DOWN + start_pos] = TRUE;
+    }
+    if (board[MOVE_LEFT + start_pos] >= chp_null * mod) {
+        moves_array[MOVE_LEFT + start_pos] = TRUE;
+    }
+    if (board[MOVE_DD_LEFT + start_pos] >= chp_null * mod) {
+        moves_array[MOVE_DD_LEFT + start_pos] = TRUE;
+    }
+    if (board[MOVE_DU_LEFT + start_pos] >= chp_null * mod) {
+        moves_array[MOVE_DU_LEFT + start_pos] = TRUE;
+    }
+}
 /* Create delta for a sliding piece. A delta is a 8-element array. Each 
  * element represents a direction, the 0th element being up, 1st element
  * being up-right diagonally, etc.. Once the basic direction of the piece
