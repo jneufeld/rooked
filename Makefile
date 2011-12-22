@@ -1,9 +1,3 @@
-## Makefile for jgn-chess
-# There's not much here, just type 'make' or 'make all'
-# This creates an executable called 'engine'. To run
-# jgn-chess, use the 'jgn-chess' script. It invokes XBoard
-# using the engine program.
-
 all: engine
 
 engine: board.o engine.o ai.o
@@ -20,4 +14,3 @@ ai.o: ai.c
 
 clean:
 	rm -f *.o engine iolog.txt xboard.debug
-

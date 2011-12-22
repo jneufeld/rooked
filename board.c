@@ -3,7 +3,6 @@
 
 /* Use 0x88 representation for the chess board.  */
 #define BOARD_SIZE 128
-#define MAX_MOVES  64
 int board[BOARD_SIZE];
 
 /* Place all pieces in default start position and reset game state.  */
@@ -39,6 +38,7 @@ void reset_board ()
 /* Print a crude command line version of the board. Just for debugging.  */
 void print_board () 
 {
+printf("attempting print_board\n");
     /* Represent each piece by a character. Capitalized pieces are white.  */
     char piece_codes[] = { 'k', 'q', 'b', 'n', 'r', 'p', ' ', 'P', 'R', 'N', 
     'B', 'Q', 'K' };
@@ -120,6 +120,7 @@ int make_move (int player, int start_pos, int end_pos)
     int piece = board[start_pos];
     board[start_pos] = chp_null;
     board[end_pos]   = piece;
+printf("make_move completed\n");
     return TRUE;
 }
 
@@ -140,14 +141,13 @@ void gen_legal_moves (int player, int start_pos, int *moves_array)
             gen_knight_moves (player, start_pos, moves_array);
             break;
 
-        /* White king can move one space in any direction, same as black king
-         * so group them together.  */
         case chp_wking:
         case chp_bking:
             gen_king_moves (player, start_pos, moves_array);
             break;
     }
-    
+    return; // TODO
+
     /* Sliding pieces require a special loop to compare the argument
      * end_square with the piece's delta. During the search, if a vector
      * happens to be blocked at some point, the delta is re-written so that
@@ -156,11 +156,11 @@ void gen_legal_moves (int player, int start_pos, int *moves_array)
      * vector were to be found, it would be found before that point and thus
      * would have been returned.  */
     int delta[8];
-    make_delta (delta, board[start_square]);
+    make_delta (delta, board[start_pos]);
     int i, j;
     for (i = 1; i < 7; i++) {
         for (j = 0; j < 8; j++) {
-            int square = (delta[j] * i) + start_square;
+            int square = (delta[j] * i) + start_pos;
 
             /* If the square we're trying to check is outside the
              * bounds of the array, just skip it.  */
@@ -175,9 +175,9 @@ void gen_legal_moves (int player, int start_pos, int *moves_array)
             }
 
             /* The move is legal.  */
-            if (square == end_square 
+            if (square == 0 //end_pos
                 && contains_players_piece (player, square) == FALSE) {
-                return TRUE;
+                //return TRUE;
             }
         }
     }
@@ -186,13 +186,13 @@ void gen_legal_moves (int player, int start_pos, int *moves_array)
 /* TRUE if move from START_POS to END_POS by PLAYER is legal.  */
 int is_legal_move (int player, int start_pos, int end_pos) 
 {
-    int legal_moves[MAX_MOVES], i;
-    for (i = 0; i < MAX_MOVES; i++) {
+    int legal_moves[BOARD_SIZE], i;
+    for (i = 0; i < BOARD_SIZE; i++) {
         legal_moves[i] = FALSE;
     }
 
     gen_legal_moves (player, start_pos, legal_moves);
-
+printf("is_legal_move completed\n");
     return legal_moves[end_pos];
 }
 
@@ -203,7 +203,7 @@ void gen_wpawn_moves (int start_pos, int *moves_array)
         moves_array[up_one] = TRUE;
     }
 
-    int up_two = MOVE_UP + MOVE_UP + start_pos;
+    int up_two = MOVE_UP + up_one;
     if ((start_pos > 15 && start_pos < 24)
         && (square_is_occupied (up_one) == FALSE)
         && (square_is_occupied (up_two) == FALSE) ) {
@@ -228,7 +228,7 @@ void gen_bpawn_moves (int start_pos, int *moves_array)
         moves_array[down_one] = TRUE;
     }
 
-    int down_two = MOVE_DOWN + MOVE_DOWN + start_pos;
+    int down_two = MOVE_DOWN + down_one;
     if ((start_pos > 95 && start_pos < 104)
         && (square_is_occupied (down_one) == FALSE)
         && (square_is_occupied (down_two) == FALSE) ) {
@@ -248,62 +248,64 @@ void gen_bpawn_moves (int start_pos, int *moves_array)
 
 void gen_knight_moves (int player, int start_pos, int *moves_array)
 {
-    int mod = (player == BPLAYER) ? -1 : 1;
+    int mod = (player == BPLAYER) ? 1 : -1;
 
-    if (board[MOVE_K_URV + start_pos] >= chp_null * mod) {
+    if (board[MOVE_K_URV + start_pos] * mod >= chp_null) {
         moves_array[MOVE_K_URV + start_pos] = TRUE;
     }
-    if (board[MOVE_K_URH + start_pos] >= chp_null * mod) {
+    if (board[MOVE_K_URH + start_pos] * mod >= chp_null) {
         moves_array[MOVE_K_URH + start_pos] = TRUE;
     }
-    if (board[MOVE_K_DRH + start_pos] >= chp_null * mod) {
+    if (board[MOVE_K_DRH + start_pos] * mod >= chp_null) {
         moves_array[MOVE_K_DRH + start_pos] = TRUE;
     }
-    if (board[MOVE_K_DRV + start_pos] >= chp_null * mod) {
+    if (board[MOVE_K_DRV + start_pos] * mod >= chp_null) {
         moves_array[MOVE_K_DRV + start_pos] = TRUE;
     }
-    if (board[MOVE_K_DLV + start_pos] >= chp_null * mod) {
+    if (board[MOVE_K_DLV + start_pos] * mod >= chp_null) {
         moves_array[MOVE_K_DLV + start_pos] = TRUE;
     }
-    if (board[MOVE_K_DLH + start_pos] >= chp_null * mod) {
+    if (board[MOVE_K_DLH + start_pos] * mod >= chp_null) {
         moves_array[MOVE_K_DLH + start_pos] = TRUE;
     }
-    if (board[MOVE_K_ULH + start_pos] >= chp_null * mod) {
+    if (board[MOVE_K_ULH + start_pos] * mod >= chp_null) {
         moves_array[MOVE_K_ULH + start_pos] = TRUE;
     }
-    if (board[MOVE_K_ULV + start_pos] >= chp_null * mod) {
+    if (board[MOVE_K_ULV + start_pos] * mod >= chp_null) {
         moves_array[MOVE_K_ULV + start_pos] = TRUE;
     }
+printf("gen_knight_moves complete\n");
 }
 
 void gen_king_moves (int player, int start_pos, int *moves_array)
 {
     int mod = (player == BPLAYER) ? -1 : 1;
     
-    if (board[MOVE_UP + start_pos] >= chp_null * mod) {
+    if (board[MOVE_UP + start_pos] * mod >= chp_null) {
         moves_array[MOVE_UP + start_pos] = TRUE;
     }
-    if (board[MOVE_RIGHT + start_pos] >= chp_null * mod) {
+    if (board[MOVE_RIGHT + start_pos] * mod >= chp_null) {
         moves_array[MOVE_RIGHT + start_pos] = TRUE;
     }
-    if (board[MOVE_DU_RIGHT + start_pos] >= chp_null * mod) {
+    if (board[MOVE_DU_RIGHT + start_pos] * mod >= chp_null) {
         moves_array[MOVE_DU_RIGHT + start_pos] = TRUE;
     }  
-    if (board[MOVE_DD_RIGHT + start_pos] >= chp_null * mod) {
+    if (board[MOVE_DD_RIGHT + start_pos] * mod >= chp_null) {
         moves_array[MOVE_DD_RIGHT + start_pos] = TRUE;
     }
-    if (board[MOVE_DOWN + start_pos] >= chp_null * mod) {
+    if (board[MOVE_DOWN + start_pos] * mod >= chp_null) {
         moves_array[MOVE_DOWN + start_pos] = TRUE;
     }
-    if (board[MOVE_LEFT + start_pos] >= chp_null * mod) {
+    if (board[MOVE_LEFT + start_pos] * mod >= chp_null) {
         moves_array[MOVE_LEFT + start_pos] = TRUE;
     }
-    if (board[MOVE_DD_LEFT + start_pos] >= chp_null * mod) {
+    if (board[MOVE_DD_LEFT + start_pos] * mod >= chp_null) {
         moves_array[MOVE_DD_LEFT + start_pos] = TRUE;
     }
-    if (board[MOVE_DU_LEFT + start_pos] >= chp_null * mod) {
+    if (board[MOVE_DU_LEFT + start_pos] * mod >= chp_null) {
         moves_array[MOVE_DU_LEFT + start_pos] = TRUE;
     }
+printf("gen_king_moves complete\n");
 }
 /* Create delta for a sliding piece. A delta is a 8-element array. Each 
  * element represents a direction, the 0th element being up, 1st element

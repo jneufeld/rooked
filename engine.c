@@ -88,6 +88,7 @@ void play_test_game ()
     int start_pos, end_pos;
 
     while (game_over () != TRUE && strcmp ("quit", str_buff) != 0) { 
+printf("play_test_game next loop iteration\n");
         print_board ();
 
         /* Get user's move then parse it from coordinate notation into an array
@@ -97,10 +98,9 @@ void play_test_game ()
             printf ("\nEnter %c move: ", pl);
             get_input ();
             parse_move (&start_pos, &end_pos);
-            printf ("=================================================\n");
         } while (make_move (curr_player, start_pos, end_pos) == FALSE
                  && strcmp ("quit", str_buff) != 0);
-       
+printf("play_test_game made player's move\n");
         curr_player = (curr_player == WPLAYER) ? BPLAYER : WPLAYER;
     }
 }
