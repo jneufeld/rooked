@@ -173,7 +173,7 @@ int is_legal_move (int player, int start_pos, int end_pos)
     return legal_moves[end_pos];
 }
 
-/* Set each index of a legal move in MOVES_ARRAY to TRUE.  */
+/* Set each index of a legal move for white pawn in MOVES_ARRAY to TRUE.  */
 void gen_wpawn_moves (int start_pos, int *moves_array)
 {
     /* Move up one if not blocked, two if first move.  */
@@ -207,7 +207,7 @@ void gen_wpawn_moves (int start_pos, int *moves_array)
     } 
 }
 
-/* Set each index of a legal move in MOVES_ARRAY to TRUE.  */
+/* Set each index of a legal move for black pawn in MOVES_ARRAY to TRUE.  */
 void gen_bpawn_moves (int start_pos, int *moves_array)
 {
     /* Move down one if not blocked, two if first move.  */
@@ -241,7 +241,7 @@ void gen_bpawn_moves (int start_pos, int *moves_array)
     } 
 }
 
-/* Set each index of a legal move in MOVES_ARRAY to TRUE.  */
+/* Set each index of a legal move for knight in MOVES_ARRAY to TRUE.  */
 void gen_knight_moves (int player, int start_pos, int *moves_array)
 {
     /* White pieces have positive values, so black knight must move into a space
@@ -292,7 +292,7 @@ void gen_knight_moves (int player, int start_pos, int *moves_array)
     }
 }
 
-/* Set each index of a legal move in MOVES_ARRAY to TRUE.  */
+/* Set each index of a legal move for king in MOVES_ARRAY to TRUE.  */
 void gen_king_moves (int player, int start_pos, int *moves_array)
 {
     /* White pieces have positive values, so black king must move into a space
@@ -343,26 +343,42 @@ void gen_king_moves (int player, int start_pos, int *moves_array)
     }
 }
 
-/* Generate legal moves in directions rook moves with GEN_ROOK_LINE_MOVES.  */
+/* Generate legal moves in directions rook moves with GEN_SLIDING_MOVES.  */
 void gen_rook_moves (int player, int start_pos, int *moves_array)
 {
     int mod = (player == BPLAYER) ? 1 : -1;
-    gen_rook_line_moves (start_pos, mod, MOVE_UP, moves_array);
-    gen_rook_line_moves (start_pos, mod, MOVE_RIGHT, moves_array);
-    gen_rook_line_moves (start_pos, mod, MOVE_DOWN, moves_array);
-    gen_rook_line_moves (start_pos, mod, MOVE_LEFT, moves_array);
-
-printf ("Rook on %d can move to:\n", start_pos);
-int i;
-for (i = 0; i < BOARD_SIZE; i++) {
-    if (moves_array[i] == TRUE) printf ("%d ", i);
+    gen_sliding_moves (start_pos, mod, MOVE_UP, moves_array);
+    gen_sliding_moves (start_pos, mod, MOVE_RIGHT, moves_array);
+    gen_sliding_moves (start_pos, mod, MOVE_DOWN, moves_array);
+    gen_sliding_moves (start_pos, mod, MOVE_LEFT, moves_array);
 }
-printf ("\n\n");
+
+/* Generate legal moves in directions bishop moves using GEN_SLIDING_MOVES.  */
+void gen_bishop_moves (int player, int start_pos, int *moves_array)
+{
+    int mod = (player == BPLAYER) ? 1 : -1;
+    gen_sliding_moves (start_pos, mod, MOVE_DU_RIGHT, moves_array);
+    gen_sliding_moves (start_pos, mod, MOVE_DD_RIGHT, moves_array);
+    gen_sliding_moves (start_pos, mod, MOVE_DD_LEFT, moves_array);
+    gen_sliding_moves (start_pos, mod, MOVE_DU_LEFT, moves_array);
 }
 
 /* Set each index of a legal move in MOVES_ARRAY to TRUE.  */
-void gen_rook_line_moves (int start_pos, int mod, int move_dir, 
-                          int *moves_array)
+void gen_queen_moves (int player, int start_pos, int *moves_array)
+{
+    int mod = (player == BPLAYER) ? 1 : -1;
+    gen_sliding_moves (start_pos, mod, MOVE_UP, moves_array);
+    gen_sliding_moves (start_pos, mod, MOVE_RIGHT, moves_array);
+    gen_sliding_moves (start_pos, mod, MOVE_DOWN, moves_array);
+    gen_sliding_moves (start_pos, mod, MOVE_LEFT, moves_array);
+    gen_sliding_moves (start_pos, mod, MOVE_DU_RIGHT, moves_array);
+    gen_sliding_moves (start_pos, mod, MOVE_DD_RIGHT, moves_array);
+    gen_sliding_moves (start_pos, mod, MOVE_DD_LEFT, moves_array);
+    gen_sliding_moves (start_pos, mod, MOVE_DU_LEFT, moves_array);
+}
+
+/* Set index of each legal move for a sliding piece to TRUE in MOVES_ARRAY.  */
+void gen_sliding_moves (int start_pos, int mod, int move_dir, int *moves_array)
 { 
     /* For each move direction, the move is legal if the space is empty. If the
      * space contains an opponents piece, the move is legal and the loop breaks,
@@ -383,18 +399,6 @@ void gen_rook_line_moves (int start_pos, int mod, int move_dir,
             break;
         }
     }
-}
-
-/* Set each index of a legal move in MOVES_ARRAY to TRUE.  */
-void gen_bishop_moves (int player, int start_pos, int *moves_array)
-{
-    int mod = (player == BPLAYER) ? -1 : 1;
-}
-
-/* Set each index of a legal move in MOVES_ARRAY to TRUE.  */
-void gen_queen_moves (int player, int start_pos, int *moves_array)
-{
-    int mod = (player == BPLAYER) ? -1 : 1;
 }
 
 /* Return TRUE if the game has been won. No special checking for 50 move
