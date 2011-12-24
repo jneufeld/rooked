@@ -196,24 +196,28 @@ int is_legal_move (int player, int start_pos, int end_pos)
 void gen_wpawn_moves (int start_pos, int *moves_array)
 {
     int up_one = MOVE_UP + start_pos;
-    if (square_is_occupied (up_one) == FALSE) {
+    if ((up_one < BOARD_SIZE)
+        && (square_is_occupied (up_one) == FALSE)) {
         moves_array[up_one] = TRUE;
     }
 
     int up_two = MOVE_UP + up_one;
-    if ((start_pos > 15 && start_pos < 24)
+    if ((up_two < BOARD_SIZE)
+        && (start_pos > 15 && start_pos < 24)
         && (square_is_occupied (up_one) == FALSE)
         && (square_is_occupied (up_two) == FALSE) ) {
             moves_array[up_two] = TRUE;
     }
 
     int up_right = MOVE_DU_RIGHT + start_pos;
-    if (board[up_right] <= chp_bpawn) {
+    if ((up_right < BOARD_SIZE)
+        && (board[up_right] <= chp_bpawn)) {
         moves_array[up_right] = TRUE;
     }
 
     int up_left  = MOVE_DU_LEFT + start_pos;
-    if (board[up_left] <= chp_bpawn) {
+    if ((up_left < BOARD_SIZE)
+        && (board[up_left] <= chp_bpawn)) {
         moves_array[up_left] = TRUE;
     } 
 }
@@ -221,24 +225,28 @@ void gen_wpawn_moves (int start_pos, int *moves_array)
 void gen_bpawn_moves (int start_pos, int *moves_array)
 {
     int down_one = MOVE_DOWN + start_pos;
-    if (square_is_occupied (down_one) == FALSE) {
+    if ((down_one >= 0)
+        && (square_is_occupied (down_one) == FALSE)) {
         moves_array[down_one] = TRUE;
     }
 
     int down_two = MOVE_DOWN + down_one;
-    if ((start_pos > 95 && start_pos < 104)
+    if ((down_two >= 0)
+        && (start_pos > 95 && start_pos < 104)
         && (square_is_occupied (down_one) == FALSE)
         && (square_is_occupied (down_two) == FALSE) ) {
             moves_array[down_two] = TRUE;
     }
 
     int down_right = MOVE_DD_RIGHT + start_pos;
-    if (board[down_right] >= chp_wpawn) {
+    if ((down_right >= 0)
+        && (board[down_right] >= chp_wpawn)) {
         moves_array[down_right] = TRUE;
     }
 
     int down_left  = MOVE_DD_LEFT + start_pos;
-    if (board[down_left] >= chp_wpawn) {
+    if ((down_left >= 0)
+        && (board[down_left] >= chp_wpawn)) {
         moves_array[down_left] = TRUE;
     } 
 }
@@ -247,36 +255,36 @@ void gen_knight_moves (int player, int start_pos, int *moves_array)
 {
     int mod = (player == BPLAYER) ? 1 : -1;
 
-    if (MOVE_K_URV + start_pos < BOARD_SIZE
-        && board[MOVE_K_URV + start_pos] * mod >= chp_null) {
+    if ((MOVE_K_URV + start_pos < BOARD_SIZE)
+        && (board[MOVE_K_URV + start_pos] * mod >= chp_null)) {
         moves_array[MOVE_K_URV + start_pos] = TRUE;
     }
-    if (MOVE_K_URH + start_pos < BOARD_SIZE
-        && board[MOVE_K_URH + start_pos] * mod >= chp_null) {
+    if ((MOVE_K_URH + start_pos < BOARD_SIZE)
+        && (board[MOVE_K_URH + start_pos] * mod >= chp_null)) {
         moves_array[MOVE_K_URH + start_pos] = TRUE;
     }
-    if (MOVE_K_ULH + start_pos < BOARD_SIZE
-        && board[MOVE_K_ULH + start_pos] * mod >= chp_null) {
+    if ((MOVE_K_ULH + start_pos < BOARD_SIZE)
+        && (board[MOVE_K_ULH + start_pos] * mod >= chp_null)) {
         moves_array[MOVE_K_ULH + start_pos] = TRUE;
     }
-    if (MOVE_K_ULV + start_pos < BOARD_SIZE
-        && board[MOVE_K_ULV + start_pos] * mod >= chp_null) {
+    if ((MOVE_K_ULV + start_pos < BOARD_SIZE)
+        && (board[MOVE_K_ULV + start_pos] * mod >= chp_null)) {
         moves_array[MOVE_K_ULV + start_pos] = TRUE;
     }
-    if (MOVE_K_DRH + start_pos >= 0
-        && board[MOVE_K_DRH + start_pos] * mod >= chp_null) {
+    if ((MOVE_K_DRH + start_pos >= 0)
+        && (board[MOVE_K_DRH + start_pos] * mod >= chp_null)) {
         moves_array[MOVE_K_DRH + start_pos] = TRUE;
     }
-    if (MOVE_K_DRV + start_pos >= 0
-        && board[MOVE_K_DRV + start_pos] * mod >= chp_null) {
+    if ((MOVE_K_DRV + start_pos >= 0)
+        && (board[MOVE_K_DRV + start_pos] * mod >= chp_null)) {
         moves_array[MOVE_K_DRV + start_pos] = TRUE;
     }
-    if (MOVE_K_DLV + start_pos >= 0
-        && board[MOVE_K_DLV + start_pos] * mod >= chp_null) {
+    if ((MOVE_K_DLV + start_pos >= 0)
+        && (board[MOVE_K_DLV + start_pos] * mod >= chp_null)) {
         moves_array[MOVE_K_DLV + start_pos] = TRUE;
     }
-    if (MOVE_K_DLH + start_pos >= 0 
-        && board[MOVE_K_DLH + start_pos] * mod >= chp_null) {
+    if ((MOVE_K_DLH + start_pos >= 0) 
+        && (board[MOVE_K_DLH + start_pos] * mod >= chp_null)) {
         moves_array[MOVE_K_DLH + start_pos] = TRUE;
     }
 }
@@ -285,36 +293,36 @@ void gen_king_moves (int player, int start_pos, int *moves_array)
 {
     int mod = (player == BPLAYER) ? -1 : 1;
     
-    if (MOVE_UP + start_pos < BOARD_SIZE
-        && board[MOVE_UP + start_pos] * mod >= chp_null) {
+    if ((MOVE_UP + start_pos < BOARD_SIZE)
+        && (board[MOVE_UP + start_pos] * mod >= chp_null)) {
         moves_array[MOVE_UP + start_pos] = TRUE;
     }
-    if (MOVE_RIGHT + start_pos < BOARD_SIZE
-        && board[MOVE_RIGHT + start_pos] * mod >= chp_null) {
+    if ((MOVE_RIGHT + start_pos < BOARD_SIZE)
+        && (board[MOVE_RIGHT + start_pos] * mod >= chp_null)) {
         moves_array[MOVE_RIGHT + start_pos] = TRUE;
     }
-    if (MOVE_DU_RIGHT + start_pos < BOARD_SIZE
-        && board[MOVE_DU_RIGHT + start_pos] * mod >= chp_null) {
+    if ((MOVE_DU_RIGHT + start_pos < BOARD_SIZE)
+        && (board[MOVE_DU_RIGHT + start_pos] * mod >= chp_null)) {
         moves_array[MOVE_DU_RIGHT + start_pos] = TRUE;
     }  
-    if (MOVE_DU_LEFT + start_pos < BOARD_SIZE
-        && board[MOVE_DU_LEFT + start_pos] * mod >= chp_null) {
+    if ((MOVE_DU_LEFT + start_pos < BOARD_SIZE)
+        && (board[MOVE_DU_LEFT + start_pos] * mod >= chp_null)) {
         moves_array[MOVE_DU_LEFT + start_pos] = TRUE;
     }
-    if (MOVE_DOWN + start_pos >= 0
-        && board[MOVE_DOWN + start_pos] * mod >= chp_null) {
+    if ((MOVE_DOWN + start_pos >= 0)
+        && (board[MOVE_DOWN + start_pos] * mod >= chp_null)) {
         moves_array[MOVE_DOWN + start_pos] = TRUE;
     }
-    if (MOVE_LEFT + start_pos >= 0
-        && board[MOVE_LEFT + start_pos] * mod >= chp_null) {
+    if ((MOVE_LEFT + start_pos >= 0)
+        && (board[MOVE_LEFT + start_pos] * mod >= chp_null)) {
         moves_array[MOVE_LEFT + start_pos] = TRUE;
     }
-    if (MOVE_DD_RIGHT + start_pos >= 0
-        && board[MOVE_DD_RIGHT + start_pos] * mod >= chp_null) {
+    if ((MOVE_DD_RIGHT + start_pos >= 0)
+        && (board[MOVE_DD_RIGHT + start_pos] * mod >= chp_null)) {
         moves_array[MOVE_DD_RIGHT + start_pos] = TRUE;
     }
-    if (MOVE_DD_LEFT + start_pos >= 0
-        && board[MOVE_DD_LEFT + start_pos] * mod >= chp_null) {
+    if ((MOVE_DD_LEFT + start_pos >= 0)
+        && (board[MOVE_DD_LEFT + start_pos] * mod >= chp_null)) {
         moves_array[MOVE_DD_LEFT + start_pos] = TRUE;
     }
 }
