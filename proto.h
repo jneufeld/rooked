@@ -1,14 +1,12 @@
-/* For convenience, define true and false values.  */
 #define TRUE        1
 #define FALSE       0
 
-/* Define int values for both players.  */
 #define WPLAYER     0
 #define BPLAYER     1
 
-/* Using the 0x88 board representation, these values help compute the
- * move squares on the array. For example, moving up from square 51 should
- * land you in square 67, thus we add 16.  */
+/* Using the 0x88 board representation, these values help compute the move
+ * squares on the array. For example, moving up from square 51 should land you
+ * in square 67, thus we add 16.  */
 #define MOVE_NULL       -999
 #define MOVE_UP         16
 #define MOVE_RIGHT      1
@@ -27,19 +25,18 @@
 #define MOVE_K_ULH      14
 #define MOVE_K_ULV      31
 
-/* Enumeration for the ints of each chess piece. The null piece is 0,
- * the white pieces range from 10-15, the black pieces from 20-25.  */
+/* Null piece is 0, white pieces range 1 to 6, black pieces from -1 to -6.  */
 enum ch_piece { 
-    chp_null = 0,   /* Null piece.  */
+    chp_null = 0,
 
-    chp_wpawn = 1,  /* White pieces.  */
+    chp_wpawn = 1,
     chp_wrook,
     chp_wknight,
     chp_wbishop,
     chp_wqueen,
     chp_wking,
 
-    chp_bpawn   = -1, /* Black pieces.  */
+    chp_bpawn   = -1,
     chp_brook   = -2,
     chp_bknight = -3,
     chp_bbishop = -4,

@@ -38,7 +38,6 @@ void reset_board ()
 /* Print a crude command line version of the board. Just for debugging.  */
 void print_board () 
 {
-printf("attempting print_board\n");
     /* Represent each piece by a character. Capitalized pieces are white.  */
     char piece_codes[] = { 'k', 'q', 'b', 'n', 'r', 'p', ' ', 'P', 'R', 'N', 
     'B', 'Q', 'K' };
@@ -120,7 +119,6 @@ int make_move (int player, int start_pos, int end_pos)
     int piece = board[start_pos];
     board[start_pos] = chp_null;
     board[end_pos]   = piece;
-printf("make_move completed\n");
     return TRUE;
 }
 
@@ -192,7 +190,6 @@ int is_legal_move (int player, int start_pos, int end_pos)
     }
 
     gen_legal_moves (player, start_pos, legal_moves);
-printf("is_legal_move completed\n");
     return legal_moves[end_pos];
 }
 
@@ -250,63 +247,78 @@ void gen_knight_moves (int player, int start_pos, int *moves_array)
 {
     int mod = (player == BPLAYER) ? 1 : -1;
 
-    if (board[MOVE_K_URV + start_pos] * mod >= chp_null) {
+    if (MOVE_K_URV + start_pos < BOARD_SIZE
+        && board[MOVE_K_URV + start_pos] * mod >= chp_null) {
         moves_array[MOVE_K_URV + start_pos] = TRUE;
     }
-    if (board[MOVE_K_URH + start_pos] * mod >= chp_null) {
+    if (MOVE_K_URH + start_pos < BOARD_SIZE
+        && board[MOVE_K_URH + start_pos] * mod >= chp_null) {
         moves_array[MOVE_K_URH + start_pos] = TRUE;
     }
-    if (board[MOVE_K_DRH + start_pos] * mod >= chp_null) {
-        moves_array[MOVE_K_DRH + start_pos] = TRUE;
-    }
-    if (board[MOVE_K_DRV + start_pos] * mod >= chp_null) {
-        moves_array[MOVE_K_DRV + start_pos] = TRUE;
-    }
-    if (board[MOVE_K_DLV + start_pos] * mod >= chp_null) {
-        moves_array[MOVE_K_DLV + start_pos] = TRUE;
-    }
-    if (board[MOVE_K_DLH + start_pos] * mod >= chp_null) {
-        moves_array[MOVE_K_DLH + start_pos] = TRUE;
-    }
-    if (board[MOVE_K_ULH + start_pos] * mod >= chp_null) {
+    if (MOVE_K_ULH + start_pos < BOARD_SIZE
+        && board[MOVE_K_ULH + start_pos] * mod >= chp_null) {
         moves_array[MOVE_K_ULH + start_pos] = TRUE;
     }
-    if (board[MOVE_K_ULV + start_pos] * mod >= chp_null) {
+    if (MOVE_K_ULV + start_pos < BOARD_SIZE
+        && board[MOVE_K_ULV + start_pos] * mod >= chp_null) {
         moves_array[MOVE_K_ULV + start_pos] = TRUE;
     }
-printf("gen_knight_moves complete\n");
+    if (MOVE_K_DRH + start_pos >= 0
+        && board[MOVE_K_DRH + start_pos] * mod >= chp_null) {
+        moves_array[MOVE_K_DRH + start_pos] = TRUE;
+    }
+    if (MOVE_K_DRV + start_pos >= 0
+        && board[MOVE_K_DRV + start_pos] * mod >= chp_null) {
+        moves_array[MOVE_K_DRV + start_pos] = TRUE;
+    }
+    if (MOVE_K_DLV + start_pos >= 0
+        && board[MOVE_K_DLV + start_pos] * mod >= chp_null) {
+        moves_array[MOVE_K_DLV + start_pos] = TRUE;
+    }
+    if (MOVE_K_DLH + start_pos >= 0 
+        && board[MOVE_K_DLH + start_pos] * mod >= chp_null) {
+        moves_array[MOVE_K_DLH + start_pos] = TRUE;
+    }
 }
 
 void gen_king_moves (int player, int start_pos, int *moves_array)
 {
     int mod = (player == BPLAYER) ? -1 : 1;
     
-    if (board[MOVE_UP + start_pos] * mod >= chp_null) {
+    if (MOVE_UP + start_pos < BOARD_SIZE
+        && board[MOVE_UP + start_pos] * mod >= chp_null) {
         moves_array[MOVE_UP + start_pos] = TRUE;
     }
-    if (board[MOVE_RIGHT + start_pos] * mod >= chp_null) {
+    if (MOVE_RIGHT + start_pos < BOARD_SIZE
+        && board[MOVE_RIGHT + start_pos] * mod >= chp_null) {
         moves_array[MOVE_RIGHT + start_pos] = TRUE;
     }
-    if (board[MOVE_DU_RIGHT + start_pos] * mod >= chp_null) {
+    if (MOVE_DU_RIGHT + start_pos < BOARD_SIZE
+        && board[MOVE_DU_RIGHT + start_pos] * mod >= chp_null) {
         moves_array[MOVE_DU_RIGHT + start_pos] = TRUE;
     }  
-    if (board[MOVE_DD_RIGHT + start_pos] * mod >= chp_null) {
-        moves_array[MOVE_DD_RIGHT + start_pos] = TRUE;
-    }
-    if (board[MOVE_DOWN + start_pos] * mod >= chp_null) {
-        moves_array[MOVE_DOWN + start_pos] = TRUE;
-    }
-    if (board[MOVE_LEFT + start_pos] * mod >= chp_null) {
-        moves_array[MOVE_LEFT + start_pos] = TRUE;
-    }
-    if (board[MOVE_DD_LEFT + start_pos] * mod >= chp_null) {
-        moves_array[MOVE_DD_LEFT + start_pos] = TRUE;
-    }
-    if (board[MOVE_DU_LEFT + start_pos] * mod >= chp_null) {
+    if (MOVE_DU_LEFT + start_pos < BOARD_SIZE
+        && board[MOVE_DU_LEFT + start_pos] * mod >= chp_null) {
         moves_array[MOVE_DU_LEFT + start_pos] = TRUE;
     }
-printf("gen_king_moves complete\n");
+    if (MOVE_DOWN + start_pos >= 0
+        && board[MOVE_DOWN + start_pos] * mod >= chp_null) {
+        moves_array[MOVE_DOWN + start_pos] = TRUE;
+    }
+    if (MOVE_LEFT + start_pos >= 0
+        && board[MOVE_LEFT + start_pos] * mod >= chp_null) {
+        moves_array[MOVE_LEFT + start_pos] = TRUE;
+    }
+    if (MOVE_DD_RIGHT + start_pos >= 0
+        && board[MOVE_DD_RIGHT + start_pos] * mod >= chp_null) {
+        moves_array[MOVE_DD_RIGHT + start_pos] = TRUE;
+    }
+    if (MOVE_DD_LEFT + start_pos >= 0
+        && board[MOVE_DD_LEFT + start_pos] * mod >= chp_null) {
+        moves_array[MOVE_DD_LEFT + start_pos] = TRUE;
+    }
 }
+
 /* Create delta for a sliding piece. A delta is a 8-element array. Each 
  * element represents a direction, the 0th element being up, 1st element
  * being up-right diagonally, etc.. Once the basic direction of the piece

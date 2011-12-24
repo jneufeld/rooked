@@ -67,6 +67,9 @@ void get_input ()
     clean_buffer ();
     int ch, i = 0;
     while ((ch = getchar ()) != '\n') {
+        if (i > BUF_SIZE) {
+            printf ("Error: i > BUF_SIZE in get_input\n");
+        }
         str_buff[i++] = ch;
     }
 }
@@ -83,12 +86,10 @@ void init_game ()
  * the command line, there is absolutely no GUI!  */
 void play_test_game ()
 {
-    printf ("Beginning CLI test game, 2-player\n");
     init_game ();
     int start_pos, end_pos;
 
     while (game_over () != TRUE && strcmp ("quit", str_buff) != 0) { 
-printf("play_test_game next loop iteration\n");
         print_board ();
 
         /* Get user's move then parse it from coordinate notation into an array
@@ -98,9 +99,8 @@ printf("play_test_game next loop iteration\n");
             printf ("\nEnter %c move: ", pl);
             get_input ();
             parse_move (&start_pos, &end_pos);
-        } while (make_move (curr_player, start_pos, end_pos) == FALSE
-                 && strcmp ("quit", str_buff) != 0);
-printf("play_test_game made player's move\n");
+        } while (make_move (curr_player, start_pos, end_pos) == FALSE);
+                 //&& strcmp ("quit", str_buff) != 0);
         curr_player = (curr_player == WPLAYER) ? BPLAYER : WPLAYER;
     }
 }
