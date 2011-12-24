@@ -67,9 +67,6 @@ void get_input ()
     clean_buffer ();
     int ch, i = 0;
     while ((ch = getchar ()) != '\n') {
-        if (i > BUF_SIZE) {
-            printf ("Error: i > BUF_SIZE in get_input\n");
-        }
         str_buff[i++] = ch;
     }
 }
@@ -99,8 +96,8 @@ void play_test_game ()
             printf ("\nEnter %c move: ", pl);
             get_input ();
             parse_move (&start_pos, &end_pos);
-        } while (make_move (curr_player, start_pos, end_pos) == FALSE);
-                 //&& strcmp ("quit", str_buff) != 0);
+        } while (make_move (curr_player, start_pos, end_pos) == FALSE
+                 && strcmp ("quit", str_buff) != 0);
         curr_player = (curr_player == WPLAYER) ? BPLAYER : WPLAYER;
     }
 }
