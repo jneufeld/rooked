@@ -48,16 +48,21 @@ enum ch_piece {
 void print_board ();
 void reset_board ();
 int  square_is_occupied (int);
+int  valid_x88_move (int);
+int  square_on_board (int);
+int  contains_players_piece (int, int);
 void gen_legal_moves (int, int, int *); 
 void gen_wpawn_moves (int, int *);
 void gen_bpawn_moves (int, int *);
 void gen_knight_moves (int, int, int *);
 void gen_king_moves (int, int, int *);
-int  is_players_piece (int, int);
+void gen_rook_moves (int, int, int *);
+void gen_rook_line_moves (int, int, int, int *);
+void gen_bishop_moves (int, int, int *);
+void gen_queen_moves (int, int, int *);
 int  make_move (int, int, int);
 int  is_legal_move (int, int, int);
 void make_delta (int *, int);
-int  is_sliding_piece (int);
 int  game_over ();
 
 /* Function prototypes for engine.c.  */

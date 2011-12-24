@@ -143,41 +143,21 @@ void gen_legal_moves (int player, int start_pos, int *moves_array)
         case chp_bking:
             gen_king_moves (player, start_pos, moves_array);
             break;
-    }
-    return; // TODO
 
-    /* Sliding pieces require a special loop to compare the argument
-     * end_square with the piece's delta. During the search, if a vector
-     * happens to be blocked at some point, the delta is re-written so that
-     * future iterations of the search no longer attempt to check along that
-     * vector. This shouldn't damage the search, as if a legal move along that
-     * vector were to be found, it would be found before that point and thus
-     * would have been returned.  */
-    int delta[8];
-    make_delta (delta, board[start_pos]);
-    int i, j;
-    for (i = 1; i < 7; i++) {
-        for (j = 0; j < 8; j++) {
-            int square = (delta[j] * i) + start_pos;
+        case chp_wrook:
+        case chp_brook:
+            gen_rook_moves (player, start_pos, moves_array);
+            break;
 
-            /* If the square we're trying to check is outside the
-             * bounds of the array, just skip it.  */
-            if (square_on_board (square) == FALSE) {
-                continue;
-            }
+        case chp_wbishop:
+        case chp_bbishop:
+            gen_bishop_moves (player, start_pos, moves_array);
+            break;
 
-            /* Check if the vector is blocked. If it is, remove this
-             * direction from the delta.  */
-            if (square_is_occupied (square) == TRUE) {
-                delta[j] = MOVE_NULL;
-            }
-
-            /* The move is legal.  */
-            if (square == 0 //end_pos
-                && contains_players_piece (player, square) == FALSE) {
-                //return TRUE;
-            }
-        }
+        case chp_wqueen:
+        case chp_bqueen:
+            gen_queen_moves (player, start_pos, moves_array);
+            break;
     }
 }
 
@@ -193,8 +173,10 @@ int is_legal_move (int player, int start_pos, int end_pos)
     return legal_moves[end_pos];
 }
 
+/* Set each index of a legal move in MOVES_ARRAY to TRUE.  */
 void gen_wpawn_moves (int start_pos, int *moves_array)
 {
+    /* Move up one if not blocked, two if first move.  */
     int up_one = MOVE_UP + start_pos;
     if ((up_one < BOARD_SIZE)
         && (square_is_occupied (up_one) == FALSE)) {
@@ -209,21 +191,26 @@ void gen_wpawn_moves (int start_pos, int *moves_array)
             moves_array[up_two] = TRUE;
     }
 
+    /* Attack right or left.  */
     int up_right = MOVE_DU_RIGHT + start_pos;
     if ((up_right < BOARD_SIZE)
+        && (valid_x88_move (up_right))
         && (board[up_right] <= chp_bpawn)) {
         moves_array[up_right] = TRUE;
     }
 
     int up_left  = MOVE_DU_LEFT + start_pos;
     if ((up_left < BOARD_SIZE)
+        && (valid_x88_move (up_left))
         && (board[up_left] <= chp_bpawn)) {
         moves_array[up_left] = TRUE;
     } 
 }
 
+/* Set each index of a legal move in MOVES_ARRAY to TRUE.  */
 void gen_bpawn_moves (int start_pos, int *moves_array)
 {
+    /* Move down one if not blocked, two if first move.  */
     int down_one = MOVE_DOWN + start_pos;
     if ((down_one >= 0)
         && (square_is_occupied (down_one) == FALSE)) {
@@ -238,143 +225,169 @@ void gen_bpawn_moves (int start_pos, int *moves_array)
             moves_array[down_two] = TRUE;
     }
 
+    /* Attack right or left.  */
     int down_right = MOVE_DD_RIGHT + start_pos;
     if ((down_right >= 0)
+        && (valid_x88_move (down_right))
         && (board[down_right] >= chp_wpawn)) {
         moves_array[down_right] = TRUE;
     }
 
     int down_left  = MOVE_DD_LEFT + start_pos;
     if ((down_left >= 0)
+        && (valid_x88_move (down_left))
         && (board[down_left] >= chp_wpawn)) {
         moves_array[down_left] = TRUE;
     } 
 }
 
+/* Set each index of a legal move in MOVES_ARRAY to TRUE.  */
 void gen_knight_moves (int player, int start_pos, int *moves_array)
 {
+    /* White pieces have positive values, so black knight must move into a space
+     * with value >= 0. To make this more general, when PLAYER is white a legal
+     * move is into a space with value <= 0, since black pieces have negative
+     * value. Thus, multiply by -1 and we can use >= 0 for both.  */
     int mod = (player == BPLAYER) ? 1 : -1;
 
     if ((MOVE_K_URV + start_pos < BOARD_SIZE)
+        && (valid_x88_move (MOVE_K_URV + start_pos))
         && (board[MOVE_K_URV + start_pos] * mod >= chp_null)) {
         moves_array[MOVE_K_URV + start_pos] = TRUE;
     }
     if ((MOVE_K_URH + start_pos < BOARD_SIZE)
+        && (valid_x88_move (MOVE_K_URH + start_pos))
         && (board[MOVE_K_URH + start_pos] * mod >= chp_null)) {
         moves_array[MOVE_K_URH + start_pos] = TRUE;
     }
     if ((MOVE_K_ULH + start_pos < BOARD_SIZE)
+        && (valid_x88_move (MOVE_K_ULH + start_pos))
         && (board[MOVE_K_ULH + start_pos] * mod >= chp_null)) {
         moves_array[MOVE_K_ULH + start_pos] = TRUE;
     }
     if ((MOVE_K_ULV + start_pos < BOARD_SIZE)
+        && (valid_x88_move (MOVE_K_ULV + start_pos))
         && (board[MOVE_K_ULV + start_pos] * mod >= chp_null)) {
         moves_array[MOVE_K_ULV + start_pos] = TRUE;
     }
     if ((MOVE_K_DRH + start_pos >= 0)
+        && (valid_x88_move (MOVE_K_DRH + start_pos))
         && (board[MOVE_K_DRH + start_pos] * mod >= chp_null)) {
         moves_array[MOVE_K_DRH + start_pos] = TRUE;
     }
     if ((MOVE_K_DRV + start_pos >= 0)
+        && (valid_x88_move (MOVE_K_DRV + start_pos))
         && (board[MOVE_K_DRV + start_pos] * mod >= chp_null)) {
         moves_array[MOVE_K_DRV + start_pos] = TRUE;
     }
     if ((MOVE_K_DLV + start_pos >= 0)
+        && (valid_x88_move (MOVE_K_DLV + start_pos))
         && (board[MOVE_K_DLV + start_pos] * mod >= chp_null)) {
         moves_array[MOVE_K_DLV + start_pos] = TRUE;
     }
     if ((MOVE_K_DLH + start_pos >= 0) 
+        && (valid_x88_move (MOVE_K_DLH + start_pos))
         && (board[MOVE_K_DLH + start_pos] * mod >= chp_null)) {
         moves_array[MOVE_K_DLH + start_pos] = TRUE;
     }
 }
 
+/* Set each index of a legal move in MOVES_ARRAY to TRUE.  */
 void gen_king_moves (int player, int start_pos, int *moves_array)
 {
+    /* White pieces have positive values, so black king must move into a space
+     * with value >= 0. To make this more general, when PLAYER is white a legal
+     * move is into a space with value <= 0, since black pieces have negative
+     * value. Thus, multiply by -1 and we can use >= 0 for both.  */
     int mod = (player == BPLAYER) ? -1 : 1;
     
     if ((MOVE_UP + start_pos < BOARD_SIZE)
+        && (valid_x88_move (MOVE_UP + start_pos) == TRUE)
         && (board[MOVE_UP + start_pos] * mod >= chp_null)) {
         moves_array[MOVE_UP + start_pos] = TRUE;
     }
     if ((MOVE_RIGHT + start_pos < BOARD_SIZE)
+        && (valid_x88_move (MOVE_RIGHT + start_pos) == TRUE)
         && (board[MOVE_RIGHT + start_pos] * mod >= chp_null)) {
         moves_array[MOVE_RIGHT + start_pos] = TRUE;
     }
     if ((MOVE_DU_RIGHT + start_pos < BOARD_SIZE)
+        && (valid_x88_move (MOVE_DU_RIGHT + start_pos) == TRUE)
         && (board[MOVE_DU_RIGHT + start_pos] * mod >= chp_null)) {
         moves_array[MOVE_DU_RIGHT + start_pos] = TRUE;
     }  
     if ((MOVE_DU_LEFT + start_pos < BOARD_SIZE)
+        && (valid_x88_move (MOVE_DU_LEFT + start_pos) == TRUE)
         && (board[MOVE_DU_LEFT + start_pos] * mod >= chp_null)) {
         moves_array[MOVE_DU_LEFT + start_pos] = TRUE;
     }
     if ((MOVE_DOWN + start_pos >= 0)
+        && (valid_x88_move (MOVE_DOWN + start_pos) == TRUE)
         && (board[MOVE_DOWN + start_pos] * mod >= chp_null)) {
         moves_array[MOVE_DOWN + start_pos] = TRUE;
     }
     if ((MOVE_LEFT + start_pos >= 0)
+        && (valid_x88_move (MOVE_LEFT + start_pos) == TRUE)
         && (board[MOVE_LEFT + start_pos] * mod >= chp_null)) {
         moves_array[MOVE_LEFT + start_pos] = TRUE;
     }
     if ((MOVE_DD_RIGHT + start_pos >= 0)
+        && (valid_x88_move (MOVE_DD_RIGHT + start_pos) == TRUE)
         && (board[MOVE_DD_RIGHT + start_pos] * mod >= chp_null)) {
         moves_array[MOVE_DD_RIGHT + start_pos] = TRUE;
     }
     if ((MOVE_DD_LEFT + start_pos >= 0)
+        && (valid_x88_move (MOVE_DD_LEFT + start_pos) == TRUE)
         && (board[MOVE_DD_LEFT + start_pos] * mod >= chp_null)) {
         moves_array[MOVE_DD_LEFT + start_pos] = TRUE;
     }
 }
 
-/* Create delta for a sliding piece. A delta is a 8-element array. Each 
- * element represents a direction, the 0th element being up, 1st element
- * being up-right diagonally, etc.. Once the basic direction of the piece
- * is created in the delta it can be used to determine whether moving that
- * piece into a certain square is legal (this is done in the is_legal_move
- * function).  */
-void make_delta (int delta[], int piece)
+/* Generate legal moves in directions rook moves with GEN_ROOK_LINE_MOVES.  */
+void gen_rook_moves (int player, int start_pos, int *moves_array)
 {
-    /* Delta should be empty initially.  */
+    int mod = (player == BPLAYER) ? -1 : 1;
+    gen_rook_line_moves (start_pos, mod, MOVE_UP, moves_array);
+    gen_rook_line_moves (start_pos, mod, MOVE_RIGHT, moves_array);
+    gen_rook_line_moves (start_pos, mod, MOVE_DOWN, moves_array);
+    gen_rook_line_moves (start_pos, mod, MOVE_LEFT, moves_array);
+}
+
+/* Set each index of a legal move in MOVES_ARRAY to TRUE.  */
+void gen_rook_line_moves (int start_pos, int mod, int move_dir, 
+                          int *moves_array)
+{ 
+    /* For each move direction, the move is legal if the space is empty. If the
+     * space contains an opponents piece, the move is legal and the loop breaks,
+     * since the piece is then blocked.  */
     int i;
-    for (i = 0; i < 8; i++) {
-        delta[i] = MOVE_NULL;
+    for (i = 1; i < 8; i++) {
+        int move = (move_dir * i) + start_pos;
+        if ((square_on_board (move)) && (valid_x88_move (move) == TRUE)) {
+            if (board[move] * mod == chp_null) {
+                moves_array[move] = TRUE;
+            } else if (board[move] * mod > chp_null) {
+                moves_array[move] = TRUE;
+                break;
+            } else {
+                break;
+            }
+        } else {
+            break;
+        }
     }
+}
 
-    /* Fill the delta array based based on the type of piece.  */
-    switch (piece) {
-        /* White and black rook can both slide vertically and
-         * horizontally.  */
-        case chp_wrook:
-        case chp_brook:
-            delta[0] = MOVE_UP;
-            delta[2] = MOVE_RIGHT;
-            delta[4] = MOVE_DOWN;
-            delta[6] = MOVE_LEFT;
-            break;
+/* Set each index of a legal move in MOVES_ARRAY to TRUE.  */
+void gen_bishop_moves (int player, int start_pos, int *moves_array)
+{
+    int mod = (player == BPLAYER) ? -1 : 1;
+}
 
-        /* White and black bishop can both slide diagonally.  */
-        case chp_wbishop:
-        case chp_bbishop:
-            delta[1] = MOVE_DU_RIGHT;
-            delta[3] = MOVE_DD_RIGHT;
-            delta[5] = MOVE_DD_LEFT;
-            delta[7] = MOVE_DU_LEFT;
-            break;
-
-        /* White and black queen can move any direction.  */
-        case chp_wqueen:
-        case chp_bqueen:
-            delta[0] = MOVE_UP;
-            delta[1] = MOVE_DU_RIGHT;
-            delta[2] = MOVE_RIGHT;
-            delta[3] = MOVE_DD_RIGHT;
-            delta[4] = MOVE_DOWN;
-            delta[5] = MOVE_DD_LEFT;
-            delta[6] = MOVE_LEFT;
-            delta[7] = MOVE_DU_LEFT;
-            break;
-    }
+/* Set each index of a legal move in MOVES_ARRAY to TRUE.  */
+void gen_queen_moves (int player, int start_pos, int *moves_array)
+{
+    int mod = (player == BPLAYER) ? -1 : 1;
 }
 
 /* Return TRUE if the game has been won. No special checking for 50 move
