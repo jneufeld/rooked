@@ -30,4 +30,10 @@ b1a3
 b8a6
 a3b5
 a6b4
+a1a2
+a8a7
+a2h2
+a7b7
+h2h4
+b7b5
 quit

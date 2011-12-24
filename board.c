@@ -346,11 +346,18 @@ void gen_king_moves (int player, int start_pos, int *moves_array)
 /* Generate legal moves in directions rook moves with GEN_ROOK_LINE_MOVES.  */
 void gen_rook_moves (int player, int start_pos, int *moves_array)
 {
-    int mod = (player == BPLAYER) ? -1 : 1;
+    int mod = (player == BPLAYER) ? 1 : -1;
     gen_rook_line_moves (start_pos, mod, MOVE_UP, moves_array);
     gen_rook_line_moves (start_pos, mod, MOVE_RIGHT, moves_array);
     gen_rook_line_moves (start_pos, mod, MOVE_DOWN, moves_array);
     gen_rook_line_moves (start_pos, mod, MOVE_LEFT, moves_array);
+
+printf ("Rook on %d can move to:\n", start_pos);
+int i;
+for (i = 0; i < BOARD_SIZE; i++) {
+    if (moves_array[i] == TRUE) printf ("%d ", i);
+}
+printf ("\n\n");
 }
 
 /* Set each index of a legal move in MOVES_ARRAY to TRUE.  */
@@ -364,7 +371,7 @@ void gen_rook_line_moves (int start_pos, int mod, int move_dir,
     for (i = 1; i < 8; i++) {
         int move = (move_dir * i) + start_pos;
         if ((square_on_board (move)) && (valid_x88_move (move) == TRUE)) {
-            if (board[move] * mod == chp_null) {
+            if (board[move] == chp_null) {
                 moves_array[move] = TRUE;
             } else if (board[move] * mod > chp_null) {
                 moves_array[move] = TRUE;
