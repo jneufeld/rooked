@@ -15,5 +15,5 @@ AI, because that's more tedious and boring code -- there's enough of that in the
 engine already.
 
 === TODO ===
- * Combine/redo is_legal_move and make_delta
  * Implement game_over
+ * Begin AI, negascout
