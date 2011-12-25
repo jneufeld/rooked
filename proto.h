@@ -51,6 +51,9 @@ int  square_is_occupied (int);
 int  valid_x88_move (int);
 int  square_on_board (int);
 int  contains_players_piece (int, int);
+int  valid_start_pos (int, int);
+int  valid_end_pos (int);
+void move_piece (int, int);
 void gen_legal_moves (int, int, int *); 
 void gen_wpawn_moves (int, int *);
 void gen_bpawn_moves (int, int *);
@@ -63,6 +66,12 @@ void gen_sliding_moves (int, int, int, int *);
 int  make_move (int, int, int);
 int  is_legal_move (int, int, int);
 void make_delta (int *, int);
+int  player_in_check (int);
+int  player_check_by_rook (int, int, int *);
+int  player_check_by_bishop (int, int, int *);
+int  player_check_by_pawn (int, int);
+int  player_check_by_knight (int, int, int *);
+void init_moves_board (int *);
 int  game_over ();
 
 /* Function prototypes for engine.c.  */

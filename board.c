@@ -4,6 +4,8 @@
 /* Use 0x88 representation for the chess board.  */
 #define BOARD_SIZE 128
 int board[BOARD_SIZE];
+int wking_pos;
+int bking_pos;
 
 /* Place all pieces in default start position and reset game state.  */
 void reset_board () 
@@ -33,6 +35,10 @@ void reset_board ()
     board[114] = board[117] = chp_bbishop;
     board[115] = chp_bqueen;  
     board[116] = chp_bking;
+
+    /* Set WKING_POS and BKING_POS to starting positions.  */
+    wking_pos = 4;
+    bking_pos = 116;
 }
 
 /* Print a crude command line version of the board. Just for debugging.  */
@@ -96,29 +102,68 @@ int contains_players_piece (int player, int pos)
 /* Perform checks on a move's legality and return TRUE if the move is made.  */
 int make_move (int player, int start_pos, int end_pos) 
 {
-    /* START_POS must be on board and contain a player's piece.  */
-    if (square_on_board (start_pos) == FALSE 
-        || contains_players_piece (player, start_pos) == FALSE) {
-        printf ("Error: invalid start_pos %d\n", start_pos);
+    /* Ensure START_POS and END_POS are valid and check that move is pseudo 
+     * legal.  */
+    if (valid_start_pos (player, start_pos) == FALSE) {
         return FALSE;
     }
-
-    /* END_POS must be valid 0x88 board index and on board. */
-    if (valid_x88_move (end_pos) == FALSE
-        || square_on_board (end_pos) == FALSE) {
-        printf ("Error: invalid end_pos %d\n", end_pos);
+    if (valid_end_pos (end_pos) == FALSE) {
         return FALSE;
     }
-
-    /* Check that the move is legal for the given piece.  */
     if (is_legal_move (player, start_pos, end_pos) == FALSE) {
-        printf ("Error: Illegal move %d - %d\n", start_pos, end_pos);
         return FALSE;
     }
 
+    /* Move piece and update king position if necessary.  */
+    move_piece (start_pos, end_pos);
+    if (board[end_pos] == chp_wking) {
+        wking_pos = end_pos;
+    } else if (board[end_pos] == chp_bking) {
+        bking_pos = end_pos;
+    }
+
+    /* Disallow moves that place player's king in check, undo move.  */
+    if (player_in_check (player) == TRUE) {
+        printf ("Error: %d - %d places king in check!\n", start_pos, end_pos);
+        move_piece (end_pos, start_pos);
+        if (board[start_pos] == chp_wking) {
+            wking_pos = start_pos;
+        } else if (board[start_pos] == chp_bking) {
+            bking_pos = start_pos;
+        }
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+/* Move piece from START_POS to END_POS.  */
+void move_piece (int start_pos, int end_pos)
+{
     int piece = board[start_pos];
     board[start_pos] = chp_null;
     board[end_pos]   = piece;
+}
+
+/* Return TRUE if a move has valid START_POS and END_POS.  */
+int valid_start_pos (int player, int pos)
+{
+    if (square_on_board (pos) == FALSE 
+        || contains_players_piece (player, pos) == FALSE) {
+        printf ("Error: invalid start_pos %d\n", pos);
+        return FALSE;
+    }
+    return TRUE;
+}
+
+/* Return TRUE if a move has a valid END_POS.  */
+int valid_end_pos (int pos)
+{
+    if (valid_x88_move (pos) == FALSE
+        || square_on_board (pos) == FALSE) {
+        printf ("Error: invalid end_pos %d\n", pos);
+        return FALSE;
+    }
     return TRUE;
 }
 
@@ -164,12 +209,15 @@ void gen_legal_moves (int player, int start_pos, int *moves_array)
 /* TRUE if move from START_POS to END_POS by PLAYER is legal.  */
 int is_legal_move (int player, int start_pos, int end_pos) 
 {
-    int legal_moves[BOARD_SIZE], i;
-    for (i = 0; i < BOARD_SIZE; i++) {
-        legal_moves[i] = FALSE;
-    }
+    int legal_moves[BOARD_SIZE];
+    init_moves_board (legal_moves);
 
     gen_legal_moves (player, start_pos, legal_moves);
+
+    if (legal_moves[end_pos] == FALSE) {
+        printf ("Error: Illegal move %d - %d\n", start_pos, end_pos);
+    }
+
     return legal_moves[end_pos];
 }
 
@@ -398,6 +446,119 @@ void gen_sliding_moves (int start_pos, int mod, int move_dir, int *moves_array)
         } else {
             break;
         }
+    }
+}
+
+/* Return TRUE if PLAYER's king is in check.  */
+int player_in_check (int player)
+{
+    int king_pos = (player == WPLAYER) ? wking_pos : bking_pos;
+    int mod = (player == BPLAYER) ? 1 : -1;
+    int moves_array[BOARD_SIZE];
+
+    if (player_check_by_pawn (king_pos, player) == TRUE) {
+        return TRUE;
+    }
+    if (player_check_by_knight (king_pos, player, moves_array) == TRUE) {
+        return TRUE;
+    }
+    if (player_check_by_rook (king_pos, mod, moves_array) == TRUE) {
+        return TRUE;
+    }
+    if (player_check_by_bishop (king_pos, mod, moves_array) == TRUE) {
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+/* Check if king at START_POS is in check by opponent's pawn.  */
+int player_check_by_pawn (int start_pos, int player)
+{
+    if (player == WPLAYER) {
+        if ((board[MOVE_DU_RIGHT + start_pos] == chp_bpawn)
+            || (board[MOVE_DU_LEFT + start_pos] == chp_bpawn)) {
+            return TRUE;
+        }
+    } else {
+        if ((board[MOVE_DD_RIGHT + start_pos] == chp_wpawn)
+            || (board[MOVE_DD_LEFT + start_pos] == chp_wpawn)) {
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
+/* Generate legal moves for king as if it were a knight and return TRUE if king
+ * is in check by these pieces.  */
+int player_check_by_knight (int start_pos, int player, int *moves_array)
+{
+    /* Pretend king is a knight and generate moves. If king can then attack an
+     * enemy's knight, king is in check.  */
+    init_moves_board (moves_array);
+    gen_knight_moves (player, start_pos, moves_array);
+    int mod = (player == BPLAYER) ? 1 : -1;
+
+    int i;
+    for (i = 0; i < BOARD_SIZE; i++) {
+        if ((moves_array[i] == TRUE) && (board[i] == chp_wknight * mod)) {
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
+/* Generate legal moves for king as if it were a rook or queen and return TRUE
+ * if king is in check by these pieces.  */
+int player_check_by_rook (int start_pos, int mod, int *moves_array)
+{
+    /* Pretend king is a rook/queen and generate moves. If king can then attack
+     * an enemy's rook/queen, king is in check.  */
+    init_moves_board (moves_array);
+    gen_sliding_moves (start_pos, mod, MOVE_UP, moves_array);
+    gen_sliding_moves (start_pos, mod, MOVE_RIGHT, moves_array);
+    gen_sliding_moves (start_pos, mod, MOVE_DOWN, moves_array);
+    gen_sliding_moves (start_pos, mod, MOVE_LEFT, moves_array);
+
+    int i;
+    for (i = 0; i < BOARD_SIZE; i++) {
+        if ((moves_array[i] == TRUE) 
+            && (board[i] == chp_wrook * mod || board[i] == chp_wqueen * mod)) {
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
+/* Generate legal moves for king as if it were a rook or queen and return TRUE
+ * if king is in check by these pieces.  */
+int player_check_by_bishop (int start_pos, int mod, int *moves_array)
+{
+    /* Pretend king is a bishop/queen and generate moves. If king can then 
+     * attack an enemy's rook/queen, king is in check.  */
+    init_moves_board (moves_array);
+    gen_sliding_moves (start_pos, mod, MOVE_DU_RIGHT, moves_array);
+    gen_sliding_moves (start_pos, mod, MOVE_DD_RIGHT, moves_array);
+    gen_sliding_moves (start_pos, mod, MOVE_DD_LEFT, moves_array);
+    gen_sliding_moves (start_pos, mod, MOVE_DU_LEFT, moves_array);
+
+    int i;
+    for (i = 0; i < BOARD_SIZE; i++) {
+        if ((moves_array[i] == TRUE) 
+            && (board[i] == chp_wbishop * mod 
+                || board[i] == chp_wqueen * mod)) {
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
+/* Fill MOVES_ARRAY with FALSE values.  */
+void init_moves_board (int *moves_array)
+{
+    int i;
+    for (i = 0; i < BOARD_SIZE; i++) {
+        moves_array[i] = FALSE;
     }
 }
 
