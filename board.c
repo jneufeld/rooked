@@ -116,22 +116,14 @@ int make_move (int player, int start_pos, int end_pos)
 
     /* Move piece and update king position if necessary.  */
     move_piece (start_pos, end_pos);
-    if (board[end_pos] == chp_wking) {
-        wking_pos = end_pos;
-    } else if (board[end_pos] == chp_bking) {
-        bking_pos = end_pos;
-    }
 
     /* Disallow moves that place player's king in check, undo move.  */
     if (player_in_check (player) == TRUE) {
         printf ("Error: %d - %d places king in check!\n", start_pos, end_pos);
         move_piece (end_pos, start_pos);
-        if (board[start_pos] == chp_wking) {
-            wking_pos = start_pos;
-        } else if (board[start_pos] == chp_bking) {
-            bking_pos = start_pos;
-        }
         return FALSE;
+    } else if (player_in_check (opponent_player (player)) == TRUE) {
+        printf ("Move places opponent in check!\n");
     }
 
     return TRUE;
@@ -143,6 +135,12 @@ void move_piece (int start_pos, int end_pos)
     int piece = board[start_pos];
     board[start_pos] = chp_null;
     board[end_pos]   = piece;
+
+    if (board[end_pos] == chp_wking) {
+        wking_pos = end_pos;
+    } else if (board[end_pos] == chp_bking) {
+        bking_pos = end_pos;
+    }
 }
 
 /* Return TRUE if a move has valid START_POS and END_POS.  */
@@ -165,6 +163,27 @@ int valid_end_pos (int pos)
         return FALSE;
     }
     return TRUE;
+}
+
+/* Return WPLAYER if PLAYER is BPLAYER, else BPLAYER.  */
+int opponent_player (int player)
+{
+    return (player == BPLAYER) ? WPLAYER : BPLAYER;
+}
+
+/* TRUE if move from START_POS to END_POS by PLAYER is legal.  */
+int is_legal_move (int player, int start_pos, int end_pos) 
+{
+    int legal_moves[BOARD_SIZE];
+    init_moves_board (legal_moves);
+
+    gen_legal_moves (player, start_pos, legal_moves);
+
+    if (legal_moves[end_pos] == FALSE) {
+        printf ("Error: Illegal move %d - %d\n", start_pos, end_pos);
+    }
+
+    return legal_moves[end_pos];
 }
 
 /* Generate legal moves for piece at START_POS and store in MOVES_ARRAY.  */
@@ -204,21 +223,6 @@ void gen_legal_moves (int player, int start_pos, int *moves_array)
             gen_queen_moves (player, start_pos, moves_array);
             break;
     }
-}
-
-/* TRUE if move from START_POS to END_POS by PLAYER is legal.  */
-int is_legal_move (int player, int start_pos, int end_pos) 
-{
-    int legal_moves[BOARD_SIZE];
-    init_moves_board (legal_moves);
-
-    gen_legal_moves (player, start_pos, legal_moves);
-
-    if (legal_moves[end_pos] == FALSE) {
-        printf ("Error: Illegal move %d - %d\n", start_pos, end_pos);
-    }
-
-    return legal_moves[end_pos];
 }
 
 /* Set each index of a legal move for white pawn in MOVES_ARRAY to TRUE.  */
@@ -391,6 +395,30 @@ void gen_king_moves (int player, int start_pos, int *moves_array)
     }
 }
 
+/* Set index of each legal move for a sliding piece to TRUE in MOVES_ARRAY.  */
+void gen_sliding_moves (int start_pos, int mod, int move_dir, int *moves_array)
+{ 
+    /* For each move direction, the move is legal if the space is empty. If the
+     * space contains an opponents piece, the move is legal and the loop breaks,
+     * since the piece is then blocked.  */
+    int i;
+    for (i = 1; i < 8; i++) {
+        int move = (move_dir * i) + start_pos;
+        if ((square_on_board (move)) && (valid_x88_move (move) == TRUE)) {
+            if (board[move] == chp_null) {
+                moves_array[move] = TRUE;
+            } else if (board[move] * mod > chp_null) {
+                moves_array[move] = TRUE;
+                break;
+            } else {
+                break;
+            }
+        } else {
+            break;
+        }
+    }
+}
+
 /* Generate legal moves in directions rook moves with GEN_SLIDING_MOVES.  */
 void gen_rook_moves (int player, int start_pos, int *moves_array)
 {
@@ -423,30 +451,6 @@ void gen_queen_moves (int player, int start_pos, int *moves_array)
     gen_sliding_moves (start_pos, mod, MOVE_DD_RIGHT, moves_array);
     gen_sliding_moves (start_pos, mod, MOVE_DD_LEFT, moves_array);
     gen_sliding_moves (start_pos, mod, MOVE_DU_LEFT, moves_array);
-}
-
-/* Set index of each legal move for a sliding piece to TRUE in MOVES_ARRAY.  */
-void gen_sliding_moves (int start_pos, int mod, int move_dir, int *moves_array)
-{ 
-    /* For each move direction, the move is legal if the space is empty. If the
-     * space contains an opponents piece, the move is legal and the loop breaks,
-     * since the piece is then blocked.  */
-    int i;
-    for (i = 1; i < 8; i++) {
-        int move = (move_dir * i) + start_pos;
-        if ((square_on_board (move)) && (valid_x88_move (move) == TRUE)) {
-            if (board[move] == chp_null) {
-                moves_array[move] = TRUE;
-            } else if (board[move] * mod > chp_null) {
-                moves_array[move] = TRUE;
-                break;
-            } else {
-                break;
-            }
-        } else {
-            break;
-        }
-    }
 }
 
 /* Return TRUE if PLAYER's king is in check.  */
