@@ -103,14 +103,11 @@ void play_test_game ()
             parse_move (&start_pos, &end_pos);
         } while (make_move (curr_player, start_pos, end_pos) == FALSE);
 
-        curr_player = (curr_player == WPLAYER) ? BPLAYER : WPLAYER;
+        curr_player = opponent_player (curr_player);
     }
 }
 
-/* Begin playing chess starting with white's (player's) move.
- * Either receive player's move from XBoard and check it's
- * legality or generate a move via the AI and send it to XBoard.
- * Continue playing until the game is over or one player quits.  */
+/* Will be used to hook up with XBoard.  */
 void play_game () 
 {
     init_game ();
@@ -128,7 +125,7 @@ void play_game ()
     
         /* Record the player's move in the debugging file. */
         fprintf (fp, "M: P%d moves %d - %d\n", curr_player, start_pos, end_pos);
-        curr_player = (curr_player == WPLAYER) ? BPLAYER : WPLAYER;
+        curr_player = opponent_player (curr_player);
     }
 }
 

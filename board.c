@@ -143,6 +143,12 @@ void move_piece (int start_pos, int end_pos)
     }
 }
 
+/* Move piece from START_POS to END_POS.  */
+void unmove_piece (int start_pos, int end_pos)
+{
+    move_piece (start_pos, end_pos);
+}
+
 /* Return TRUE if a move has valid START_POS and END_POS.  */
 int valid_start_pos (int player, int pos)
 {
@@ -188,6 +194,13 @@ int is_legal_move (int player, int start_pos, int end_pos)
 
 /* Generate legal moves for piece at START_POS and store in MOVES_ARRAY.  */
 void gen_legal_moves (int player, int start_pos, int *moves_array) 
+{
+    gen_plegal_moves (player, start_pos, moves_array);
+    //remove_check_moves (player, moves_array);
+}
+
+/* Generate pseudo legal moves at START_POS and store in MOVES_ARRAY.  */
+void gen_plegal_moves (int player, int start_pos, int *moves_array)
 {
     switch (board[start_pos]) {
         case chp_wpawn:

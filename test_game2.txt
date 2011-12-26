@@ -15,7 +15,4 @@ f6d5
 e4d5
 e6d5
 d1a4
-d5d4
-e3d4
-d8d4
 quit
