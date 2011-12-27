@@ -58,6 +58,7 @@ void move_piece (int, int);
 void unmove_piece (int, int);
 void gen_legal_moves (int, int, int *); 
 void gen_plegal_moves (int, int, int *);
+void remove_check_moves (int, int, int *);
 void gen_wpawn_moves (int, int *);
 void gen_bpawn_moves (int, int *);
 void gen_knight_moves (int, int, int *);
