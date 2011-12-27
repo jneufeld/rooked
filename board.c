@@ -196,7 +196,22 @@ int is_legal_move (int player, int start_pos, int end_pos)
 void gen_legal_moves (int player, int start_pos, int *moves_array) 
 {
     gen_plegal_moves (player, start_pos, moves_array);
-    //remove_check_moves (player, moves_array);
+    remove_check_moves (player, start_pos, moves_array);
+}
+
+/* Set moves leaving player in check to FALSE in MOVES_ARRAY.  */
+void remove_check_moves (int player, int start_pos, int *moves_array)
+{
+    int i;
+    for (i = 0; i < BOARD_SIZE; i++) {
+        if (moves_array[i] == TRUE) {
+            move_piece (start_pos, i);
+            if (player_in_check (player) == TRUE) {
+                moves_array[i] = FALSE;
+            }
+            unmove_piece (start_pos, i);
+        }
+    }
 }
 
 /* Generate pseudo legal moves at START_POS and store in MOVES_ARRAY.  */
