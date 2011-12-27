@@ -55,7 +55,7 @@ int  valid_start_pos (int, int);
 int  valid_end_pos (int);
 int  opponent_player (int);
 void move_piece (int, int);
-void unnmove_piece (int, int);
+void unmove_piece (int, int);
 void gen_legal_moves (int, int, int *); 
 void gen_plegal_moves (int, int, int *);
 void gen_wpawn_moves (int, int *);
