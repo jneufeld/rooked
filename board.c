@@ -130,23 +130,34 @@ int make_move (int player, int start_pos, int end_pos)
 }
 
 /* Move piece from START_POS to END_POS.  */
-void move_piece (int start_pos, int end_pos)
+int move_piece (int start_pos, int end_pos)
 {
-    int piece = board[start_pos];
+    int moved        = board[start_pos];
+    int attacked     = board[end_pos];
     board[start_pos] = chp_null;
-    board[end_pos]   = piece;
+    board[end_pos]   = moved;
 
     if (board[end_pos] == chp_wking) {
         wking_pos = end_pos;
     } else if (board[end_pos] == chp_bking) {
         bking_pos = end_pos;
     }
+
+    return attacked;
 }
 
 /* Move piece from START_POS to END_POS.  */
-void unmove_piece (int start_pos, int end_pos)
+void unmove_piece (int start_pos, int end_pos, int old_piece)
 {
-    move_piece (end_pos, start_pos);
+    int moved        = board[end_pos];
+    board[start_pos] = moved;
+    board[end_pos]   = old_piece;
+
+    if (board[start_pos] == chp_wking) {
+        wking_pos = start_pos;
+    } else if (board[start_pos] == chp_bking) {
+        bking_pos = start_pos;
+    }
 }
 
 /* Return TRUE if a move has valid START_POS and END_POS.  */
@@ -205,11 +216,11 @@ void remove_check_moves (int player, int start_pos, int *moves_array)
     int i;
     for (i = 0; i < BOARD_SIZE; i++) {
         if (moves_array[i] == TRUE) {
-            move_piece (start_pos, i);
+            int attacked = move_piece (start_pos, i);
             if (player_in_check (player) == TRUE) {
                 moves_array[i] = FALSE;
             }
-            unmove_piece (start_pos, i);
+            unmove_piece (start_pos, i, attacked);
         }
     }
 }
