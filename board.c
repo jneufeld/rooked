@@ -146,7 +146,7 @@ void move_piece (int start_pos, int end_pos)
 /* Move piece from START_POS to END_POS.  */
 void unmove_piece (int start_pos, int end_pos)
 {
-    move_piece (start_pos, end_pos);
+    move_piece (end_pos, start_pos);
 }
 
 /* Return TRUE if a move has valid START_POS and END_POS.  */
