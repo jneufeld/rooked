@@ -6,6 +6,7 @@
 int board[BOARD_SIZE];
 int wking_pos;
 int bking_pos;
+int checkmate;
 
 /* Place all pieces in default start position and reset game state.  */
 void reset_board () 
@@ -39,6 +40,7 @@ void reset_board ()
     /* Set WKING_POS and BKING_POS to starting positions.  */
     wking_pos = 4;
     bking_pos = 116;
+    checkmate = FALSE;
 }
 
 /* Print a crude command line version of the board. Just for debugging.  */
@@ -102,8 +104,6 @@ int contains_players_piece (int player, int pos)
 /* Perform checks on a move's legality and return TRUE if the move is made.  */
 int make_move (int player, int start_pos, int end_pos) 
 {
-    /* Ensure START_POS and END_POS are valid and check that move is pseudo 
-     * legal.  */
     if (valid_start_pos (player, start_pos) == FALSE) {
         return FALSE;
     }
@@ -114,16 +114,13 @@ int make_move (int player, int start_pos, int end_pos)
         return FALSE;
     }
 
-    /* Move piece and update king position if necessary.  */
     move_piece (start_pos, end_pos);
-
-    /* Disallow moves that place player's king in check, undo move.  */
-    if (player_in_check (player) == TRUE) {
-        printf ("Error: %d - %d places king in check!\n", start_pos, end_pos);
-        move_piece (end_pos, start_pos);
-        return FALSE;
-    } else if (player_in_check (opponent_player (player)) == TRUE) {
+    if (player_in_check (opponent_player (player)) == TRUE) {
         printf ("Move places opponent in check!\n");
+    }
+
+    if (player_has_moves (opponent_player (player)) == FALSE) {
+        checkmate = TRUE;
     }
 
     return TRUE;
@@ -146,7 +143,7 @@ int move_piece (int start_pos, int end_pos)
     return attacked;
 }
 
-/* Move piece from START_POS to END_POS.  */
+/* Move piece from END_POS to START_POS and place OLD_PIECE in END_POS.  */
 void unmove_piece (int start_pos, int end_pos, int old_piece)
 {
     int moved        = board[end_pos];
@@ -390,7 +387,7 @@ void gen_king_moves (int player, int start_pos, int *moves_array)
      * with value >= 0. To make this more general, when PLAYER is white a legal
      * move is into a space with value <= 0, since black pieces have negative
      * value. Thus, multiply by -1 and we can use >= 0 for both.  */
-    int mod = (player == BPLAYER) ? -1 : 1;
+    int mod = (player == BPLAYER) ? 1 : -1;
     
     if ((MOVE_UP + start_pos < BOARD_SIZE)
         && (valid_x88_move (MOVE_UP + start_pos) == TRUE)
@@ -605,9 +602,36 @@ void init_moves_board (int *moves_array)
     }
 }
 
+/* Return TRUE if PLAYER has a legal move.  */
+int player_has_moves (int player)
+{
+    int i, mod = (player == BPLAYER) ? -1 : 1;
+
+    /* If a board square contains a player's piece, generate all legal moves for
+     * that piece, then check if there are any legal moves. If there are, simply
+     * return TRUE. Else continue for all pieces.  */
+    for (i = 0; i < BOARD_SIZE; i++) {
+        if (board[i] * mod > chp_null) {
+            int moves_array[BOARD_SIZE];
+            init_moves_board (moves_array);
+            gen_legal_moves (player, i, moves_array);
+
+            int j;
+            for (j = 0; j < BOARD_SIZE; j++) {
+                if (moves_array[j] == TRUE) {
+                    printf (":: player_has_moves: legal %d - %d\n", i, j);
+                    return TRUE;
+                }
+            }
+        }
+    }
+    
+    return FALSE;
+}
+
 /* Return TRUE if the game has been won. No special checking for 50 move
  * draw or other special termination conditions currently implemented.  */
 int game_over () 
 {
-    return FALSE;
+    return checkmate;
 }
