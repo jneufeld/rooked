@@ -96,3 +96,4 @@ void parse_move (int *, int *);
 
 /* Function prototypes for ai.c.  */
 struct ai_move best_move ();
+int  board_utility ();
