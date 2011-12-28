@@ -105,6 +105,10 @@ void play_test_game ()
 
         curr_player = opponent_player (curr_player);
     }
+
+    if (game_over () == TRUE) {
+        printf ("Checkmate!\n");
+    }
 }
 
 /* Will be used to hook up with XBoard.  */
