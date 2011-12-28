@@ -4,6 +4,8 @@
 #define WPLAYER     0
 #define BPLAYER     1
 
+#define BOARD_SIZE  128
+
 /* Using the 0x88 board representation, these values help compute the move
  * squares on the array. For example, moving up from square 51 should land you
  * in square 67, thus we add 16.  */
@@ -42,6 +44,11 @@ enum ch_piece {
     chp_bbishop = -4,
     chp_bqueen  = -5,
     chp_bking   = -6
+};
+
+struct ai_move {
+    int start_pos;
+    int end_pos;
 };
 
 /* Function prototypes for board.c.  */
@@ -88,3 +95,4 @@ void play_ai_game ();
 void parse_move (int *, int *);
 
 /* Function prototypes for ai.c.  */
+struct ai_move best_move ();
