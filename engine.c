@@ -141,9 +141,6 @@ void play_ai_game ()
                 }
             } else {
                 printf ("Making AI's move\n");
-                struct ai_move = best_move ();
-                start_pos = ai_move.start_pos;
-                end_pos   = ai_move.end_pos;
             }
         } while (make_move (curr_player, start_pos, end_pos) == FALSE);
         curr_player = opponent_player (curr_player);
