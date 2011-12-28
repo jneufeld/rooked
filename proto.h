@@ -75,6 +75,7 @@ int  player_check_by_bishop (int, int, int *);
 int  player_check_by_pawn (int, int);
 int  player_check_by_knight (int, int, int *);
 void init_moves_board (int *);
+int  player_has_moves (int);
 int  game_over ();
 
 /* Function prototypes for engine.c.  */
@@ -83,6 +84,7 @@ void get_input ();
 void init_game ();
 void play_game ();
 void play_test_game ();
+void play_ai_game ();
 void parse_move (int *, int *);
 
 /* Function prototypes for ai.c.  */
