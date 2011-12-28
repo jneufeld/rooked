@@ -2,7 +2,6 @@
 #include <stdio.h>
 
 /* Use 0x88 representation for the chess board.  */
-#define BOARD_SIZE 128
 int board[BOARD_SIZE];
 int wking_pos;
 int bking_pos;
@@ -602,7 +601,8 @@ void init_moves_board (int *moves_array)
     }
 }
 
-/* Return TRUE if PLAYER has a legal move.  */
+/* Return TRUE if PLAYER has a legal move. This is strictly for detecting
+ * checkmate, not for generating all legal moves a player has.  */
 int player_has_moves (int player)
 {
     int i, mod = (player == BPLAYER) ? -1 : 1;
