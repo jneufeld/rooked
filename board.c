@@ -2,7 +2,7 @@
 #include <stdio.h>
 
 /* Use 0x88 representation for the chess board.  */
-int board[BOARD_SIZE];
+extern int board[BOARD_SIZE];
 int wking_pos;
 int bking_pos;
 int checkmate;
