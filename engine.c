@@ -136,13 +136,15 @@ void play_ai_game ()
 
                 if (strcmp ("quit", str_buff) == 0) {
                  break;
+                } else {
+                    parse_move (&start_pos, &end_pos);
                 }
             } else {
                 printf ("Making AI's move\n");
-                best_move ();
+                struct ai_move = best_move ();
+                start_pos = ai_move.start_pos;
+                end_pos   = ai_move.end_pos;
             }
-
-            parse_move (&start_pos, &end_pos);
         } while (make_move (curr_player, start_pos, end_pos) == FALSE);
         curr_player = opponent_player (curr_player);
     }
