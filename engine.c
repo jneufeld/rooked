@@ -16,11 +16,14 @@ int main (int argc, char *argv[])
     setbuf (stdin, NULL);
 
     /* The -c switch plays a command line game, good for debugging.  */
-    if (argc >= 2 && strcmp (argv[1], "-c") == 0) {
+    if (argc >= 2 && strncmp (argv[1], "-c", 2) == 0) {
         play_test_game ();
+    } else if (argc >= 2 && strncmp (argv[1], "-a", 2)) {
+        play_ai_game ();
     } else if (argc >= 2) {
         printf ("Argument(s) not recognized.\n");
         printf ("\t-c play command line 2-player game\n");
+        printf ("\t-a play command line 2-player game vs AI\n");
         printf ("\tno arguments for regular XBoard game\n");
         return -1;
     }
@@ -103,6 +106,44 @@ void play_test_game ()
             parse_move (&start_pos, &end_pos);
         } while (make_move (curr_player, start_pos, end_pos) == FALSE);
 
+        curr_player = opponent_player (curr_player);
+    }
+
+    if (game_over () == TRUE) {
+        printf ("Checkmate!\n");
+    }
+}
+
+/* Play a debugging/test game, controlling white and black. This is done via 
+ * the command line, there is absolutely no GUI!  */
+void play_ai_game ()
+{
+    init_game ();
+    int start_pos, end_pos;
+
+    while (game_over () == FALSE && strcmp ("quit", str_buff) != 0) { 
+        print_board ();
+
+        /* Get user's move then parse it from coordinate notation into an array
+        index. Loop until the move is valid.  */
+        do {
+            char pl = (curr_player == WPLAYER) ? 'W' : 'B';
+
+            /* Get player's move or move from AI.  */
+            if (curr_player == WPLAYER) {
+                printf ("\nEnter %c move: ", pl);
+                get_input ();
+
+                if (strcmp ("quit", str_buff) == 0) {
+                 break;
+                }
+            } else {
+                printf ("Making AI's move\n");
+                best_move ();
+            }
+
+            parse_move (&start_pos, &end_pos);
+        } while (make_move (curr_player, start_pos, end_pos) == FALSE);
         curr_player = opponent_player (curr_player);
     }
 
