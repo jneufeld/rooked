@@ -87,10 +87,13 @@ void init_game ()
 void play_test_game ()
 {
     init_game ();
-    int start_pos, end_pos;
 
     while (game_over () == FALSE && strcmp ("quit", str_buff) != 0) { 
         print_board ();
+
+        struct move mv;
+        mv.start_pos = 0;
+        mv.end_pos   = 0;
 
         /* Get user's move then parse it from coordinate notation into an array
         index. Loop until the move is valid.  */
@@ -103,8 +106,8 @@ void play_test_game ()
                 break;
             }
 
-            parse_move (&start_pos, &end_pos);
-        } while (make_move (curr_player, start_pos, end_pos) == FALSE);
+            parse_move (&mv);
+        } while (make_move (curr_player, mv.start_pos, mv.end_pos) == FALSE);
 
         curr_player = opponent_player (curr_player);
     }
@@ -114,15 +117,17 @@ void play_test_game ()
     }
 }
 
-/* Play a debugging/test game, controlling white and black. This is done via 
- * the command line, there is absolutely no GUI!  */
+/* Play a test game controlling white vs the AI.  */
 void play_ai_game ()
 {
     init_game ();
-    int start_pos, end_pos;
 
     while (game_over () == FALSE && strcmp ("quit", str_buff) != 0) { 
         print_board ();
+
+        struct move mv;
+        mv.start_pos = 0;
+        mv.end_pos   = 0;
 
         /* Get user's move then parse it from coordinate notation into an array
         index. Loop until the move is valid.  */
@@ -136,13 +141,13 @@ void play_ai_game ()
 
                 if (strcmp ("quit", str_buff) == 0) {
                  break;
-                } else {
-                    parse_move (&start_pos, &end_pos);
                 }
             } else {
                 printf ("Making AI's move\n");
+                best_move (&mv);
             }
-        } while (make_move (curr_player, start_pos, end_pos) == FALSE);
+            parse_move (&mv);
+        } while (make_move (curr_player, mv.start_pos, mv.end_pos) == FALSE);
         curr_player = opponent_player (curr_player);
     }
 
@@ -155,27 +160,29 @@ void play_ai_game ()
 void play_game () 
 {
     init_game ();
-    int start_pos, end_pos;
+
+    struct move mv;
+    mv.start_pos = 0;
+    mv.end_pos   = 0;
 
     while (game_over () != TRUE && strcmp ("quit", str_buff) != 0) {
         /* Get user's move then parse it from coordinate notation into an array
          * index. Loop until the move is valid.  */
         do {
             get_input ();
-            parse_move (&start_pos, &end_pos);
+            parse_move (&mv);
             fprintf (fp, "R: %s\n", str_buff);
         } while (strcmp ("quit", str_buff) != 0
-                 && make_move (curr_player, start_pos, end_pos) == FALSE);
+                 && make_move (curr_player, mv.start_pos, mv.end_pos) == FALSE);
     
-        /* Record the player's move in the debugging file. */
-        fprintf (fp, "M: P%d moves %d - %d\n", curr_player, start_pos, end_pos);
         curr_player = opponent_player (curr_player);
     }
 }
 
-/* Convert coordinate notation into an array index.  */
-void parse_move (int *start, int *end)
+/* Convert coordinate notation of a move from STR_BUF to array index for
+ * START_POS and END_POS.  */
+void parse_move (struct move *mv)
 {
-    *start = (str_buff[0] - 'a') + ((str_buff[1] - '1') * 16);
-    *end   = (str_buff[2] - 'a') + ((str_buff[3] - '1') * 16);
+    mv->start_pos = (str_buff[0] - 'a') + ((str_buff[1] - '1') * 16);
+    mv->end_pos   = (str_buff[2] - 'a') + ((str_buff[3] - '1') * 16);
 }

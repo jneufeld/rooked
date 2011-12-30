@@ -46,7 +46,7 @@ enum ch_piece {
     chp_bking   = -6
 };
 
-struct ai_move {
+struct move {
     int start_pos;
     int end_pos;
 };
@@ -92,8 +92,8 @@ void init_game ();
 void play_game ();
 void play_test_game ();
 void play_ai_game ();
-void parse_move (int *, int *);
+void parse_move (struct move *);
 
 /* Function prototypes for ai.c.  */
-struct ai_move best_move ();
+void best_move (struct move *);
 int  board_utility ();

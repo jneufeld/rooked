@@ -3,11 +3,8 @@
 int board[BOARD_SIZE];
 
 /* Return the best move the AI can make. Use negascout!  */
-struct ai_move best_move ()
+void best_move (struct move *m)
 {
-    struct ai_move move;
-    move.start_pos = 0;
-    move.end_pos   = 0;
     int curr_util  = -999;
 
     int legal_moves[BOARD_SIZE], i;
@@ -17,8 +14,6 @@ struct ai_move best_move ()
             // Now make the move (or subsequent moves) and evaluate
         }
     }
-
-    return move;
 }
 
 /* Return the utility of the board.  */
