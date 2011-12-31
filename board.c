@@ -620,7 +620,6 @@ int player_has_moves (int player)
             int j;
             for (j = 0; j < BOARD_SIZE; j++) {
                 if (moves_array[j] == TRUE) {
-                    printf (":: player_has_moves: legal %d - %d\n", i, j);
                     return TRUE;
                 }
             }
