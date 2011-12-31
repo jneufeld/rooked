@@ -18,12 +18,18 @@ int main (int argc, char *argv[])
     /* The -c switch plays a command line game, good for debugging.  */
     if (argc >= 2 && strncmp (argv[1], "-c", 2) == 0) {
         play_test_game ();
-    } else if (argc >= 2 && strncmp (argv[1], "-a", 2)) {
+        return 0;
+    } else if (argc >= 2 && strncmp (argv[1], "-a", 2) == 0) {
         play_ai_game ();
+        return 0;
+    } else if (argc >= 2 && strncmp (argv[1], "-t", 2) == 0) {
+        search_test ();
+        return 0;
     } else if (argc >= 2) {
         printf ("Argument(s) not recognized.\n");
         printf ("\t-c play command line 2-player game\n");
         printf ("\t-a play command line 2-player game vs AI\n");
+        printf ("\t-t run a test search\n");
         printf ("\tno arguments for regular XBoard game\n");
         return -1;
     }
@@ -113,6 +119,7 @@ void play_test_game ()
     }
 
     if (game_over () == TRUE) {
+        print_board ();
         printf ("Checkmate!\n");
     }
 }
@@ -129,29 +136,34 @@ void play_ai_game ()
         mv.start_pos = 0;
         mv.end_pos   = 0;
 
+        int ai_escape = 0;
         /* Get user's move then parse it from coordinate notation into an array
         index. Loop until the move is valid.  */
         do {
-            char pl = (curr_player == WPLAYER) ? 'W' : 'B';
-
             /* Get player's move or move from AI.  */
             if (curr_player == WPLAYER) {
+                char pl = (curr_player == WPLAYER) ? 'W' : 'B';
                 printf ("\nEnter %c move: ", pl);
                 get_input ();
 
                 if (strcmp ("quit", str_buff) == 0) {
                  break;
                 }
+                parse_move (&mv);
             } else {
-                printf ("Making AI's move\n");
+                if (ai_escape) {
+                    break;
+                } else {
+                    ai_escape++;
+                }
                 best_move (&mv);
             }
-            parse_move (&mv);
         } while (make_move (curr_player, mv.start_pos, mv.end_pos) == FALSE);
         curr_player = opponent_player (curr_player);
     }
 
     if (game_over () == TRUE) {
+        print_board ();
         printf ("Checkmate!\n");
     }
 }
@@ -177,6 +189,15 @@ void play_game ()
     
         curr_player = opponent_player (curr_player);
     }
+}
+
+/* Run some search tests.  */
+void search_test ()
+{
+    printf ("Beginning search test to depth %d...\n", SEARCH_DEP);
+    init_game ();
+    abp_search (WPLAYER, SEARCH_DEP, NEG_INF, POS_INF);
+    printf ("End of search.\n");
 }
 
 /* Convert coordinate notation of a move from STR_BUF to array index for
