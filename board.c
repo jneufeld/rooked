@@ -1,7 +1,6 @@
 #include "proto.h"
 #include <stdio.h>
 
-/* Use 0x88 representation for the chess board.  */
 extern int board[BOARD_SIZE];
 int wking_pos;
 int bking_pos;
@@ -154,6 +153,8 @@ void unmove_piece (int start_pos, int end_pos, int old_piece)
     } else if (board[start_pos] == chp_bking) {
         bking_pos = start_pos;
     }
+
+    checkmate = FALSE;
 }
 
 /* Return TRUE if a move has valid START_POS and END_POS.  */
