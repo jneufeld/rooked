@@ -80,7 +80,7 @@ int abp_search (int player, int depth, int alpha, int beta)
     return curr_util;
 }
 
-/* Return the material (piece) score.  */
+/* Return the material (piece) score of BOARD.  */
 int material_score ()
 {
     int wt_pawn, wt_rook, wt_knight, wt_bishop, wt_queen, wt_king;
@@ -145,8 +145,15 @@ int material_score ()
     return black_score - white_score;
 }
 
-/* Return the utility of the board.  */
+/* Return the positional utility of BOARD.  */
+int positional_score ()
+{
+    return 0;
+}
+
+/* Return utility of BOARD as function of material and positional scores.  */
 int board_utility ()
 {
-    return material_score ();
+    return (MATERIAL_WT * material_score ()) + (POSITION_WT * 
+        positional_score ());
 }
