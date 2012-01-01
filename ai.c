@@ -1,4 +1,5 @@
-#include "proto.h"
+#include "ai.h"
+#include "board.h"
 
 int board[BOARD_SIZE];  // from board.c
 

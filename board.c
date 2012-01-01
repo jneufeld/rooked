@@ -1,5 +1,5 @@
-#include "proto.h"
 #include <stdio.h>
+#include "board.h"
 
 extern int board[BOARD_SIZE];
 int wking_pos;

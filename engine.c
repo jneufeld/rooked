@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <string.h>
-#include "proto.h"
+
+#include "ai.h"
+#include "engine.h"
+#include "board.h"
 
 #define BUF_SIZE 128
 
