@@ -114,7 +114,7 @@ int make_move (int player, int start_pos, int end_pos)
 
     move_piece (start_pos, end_pos);
     if (player_in_check (opponent_player (player)) == TRUE) {
-        printf ("Move places opponent in check!\n");
+        //printf ("Move places opponent in check!\n");
     }
 
     if (player_has_moves (opponent_player (player)) == FALSE) {
@@ -162,7 +162,7 @@ int valid_start_pos (int player, int pos)
 {
     if (square_on_board (pos) == FALSE 
         || contains_players_piece (player, pos) == FALSE) {
-        printf ("Error: invalid start_pos %d\n", pos);
+        //printf ("Error: invalid start_pos %d\n", pos);
         return FALSE;
     }
     return TRUE;
@@ -173,7 +173,7 @@ int valid_end_pos (int pos)
 {
     if (valid_x88_move (pos) == FALSE
         || square_on_board (pos) == FALSE) {
-        printf ("Error: invalid end_pos %d\n", pos);
+        //printf ("Error: invalid end_pos %d\n", pos);
         return FALSE;
     }
     return TRUE;
@@ -194,7 +194,7 @@ int is_legal_move (int player, int start_pos, int end_pos)
     gen_legal_moves (player, start_pos, legal_moves);
 
     if (legal_moves[end_pos] == FALSE) {
-        printf ("Error: Illegal move %d - %d\n", start_pos, end_pos);
+        //printf ("Error: Illegal move %d - %d\n", start_pos, end_pos);
     }
 
     return legal_moves[end_pos];
