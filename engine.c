@@ -11,6 +11,11 @@ int   curr_player;
 /* XBoard starts engine from here.  */
 int main (int argc, char *argv[]) 
 {
+    fp = fopen ("iolog.txt", "w");
+    if (fp == NULL) {
+        return -1;
+    }
+
     /* XBoard suggests the following to fix buffering for I/O problems.  */
     setbuf (stdout, NULL);
     setbuf (stdin, NULL);
@@ -32,27 +37,16 @@ int main (int argc, char *argv[])
         printf ("\t-t run a test search\n");
         printf ("\tno arguments for regular XBoard game\n");
         return -1;
-    }
-
-    fp = fopen ("iolog.txt", "w");
-    if (fp == NULL) {
-        return -1;
     } else {
-        while (strcmp ("quit", str_buff) != 0) { 
+        while (strncmp ("quit", str_buff, 4) != 0) { 
             get_input ();
 
             /* Catch XBoard's messages from stdin.  */
-            if (strcmp ("new", str_buff) == 0) { 
-                fprintf (fp, "R: new\nA: init_game()\nA: play_game()\n");
-                init_game ();
+            if (strncmp ("new", str_buff, 3) == 0) { 
                 play_game ();
-            } else if (strcmp ("protover 2", str_buff) == 0) { 
-                fprintf (fp, "R: protover 2\nS: feature done=1\n");
-                printf ("feature myname=jgnchess done=1\n");
-            } else if (strcmp ("quit", str_buff) == 0) { 
-                fprintf (fp, "R: quit\nA: quitting\n");
-            } else
-                fprintf (fp, "U: \"%s\"\n", str_buff);
+            } else if (strncmp ("protover 2", str_buff, 10) == 0) { 
+                printf ("feature myname=\"jgn-chess\" usermove=1 sigint=0 done=1\n");
+            }
         }
     }
     fclose (fp);
@@ -78,6 +72,7 @@ void get_input ()
     while ((ch = getchar ()) != '\n') {
         str_buff[i++] = ch;
     }
+    fprintf (fp, "R: %s\n", str_buff);
 }
 
 /* Clear the board of pieces, reset move counts and all state associated with
@@ -94,7 +89,7 @@ void play_test_game ()
 {
     init_game ();
 
-    while (game_over () == FALSE && strcmp ("quit", str_buff) != 0) { 
+    while (game_over () == FALSE && strncmp ("quit", str_buff, 4) != 0) {
         print_board ();
 
         struct move mv;
@@ -108,11 +103,11 @@ void play_test_game ()
             printf ("\nEnter %c move: ", pl);
             get_input ();
 
-            if (strcmp ("quit", str_buff) == 0) {
+            if (strncmp ("quit", str_buff, 4) == 0) {
                 break;
             }
 
-            parse_move (&mv);
+            parse_move (&mv, FALSE);
         } while (make_move (curr_player, mv.start_pos, mv.end_pos) == FALSE);
 
         curr_player = opponent_player (curr_player);
@@ -127,16 +122,16 @@ void play_test_game ()
 /* Play a test game controlling white vs the AI.  */
 void play_ai_game ()
 {
+    fprintf (fp, "A: play_ai_game\n");
     init_game ();
 
-    while (game_over () == FALSE && strcmp ("quit", str_buff) != 0) { 
+    while (game_over () == FALSE && strncmp ("quit", str_buff, 4) != 0) { 
         print_board ();
 
         struct move mv;
         mv.start_pos = 0;
         mv.end_pos   = 0;
 
-        int ai_escape = 0;
         /* Get user's move then parse it from coordinate notation into an array
         index. Loop until the move is valid.  */
         do {
@@ -146,19 +141,22 @@ void play_ai_game ()
                 printf ("\nEnter %c move: ", pl);
                 get_input ();
 
-                if (strcmp ("quit", str_buff) == 0) {
-                 break;
-                }
-                parse_move (&mv);
-            } else {
-                if (ai_escape) {
+                if (strncmp ("quit", str_buff, 4) == 0) {
                     break;
-                } else {
-                    ai_escape++;
                 }
+                parse_move (&mv, FALSE);
+            } else {
+                printf ("making AI's move\n");
+                fprintf (fp, "A: best_move\n");
                 best_move (&mv);
             }
         } while (make_move (curr_player, mv.start_pos, mv.end_pos) == FALSE);
+
+        if (curr_player == BPLAYER) {
+            unparse_move (&mv);
+            printf ("move %s\n", str_buff);
+        }
+
         curr_player = opponent_player (curr_player);
     }
 
@@ -168,25 +166,46 @@ void play_ai_game ()
     }
 }
 
-/* Will be used to hook up with XBoard.  */
+/* Hook up with XBoard and play a game of chess :).  */
 void play_game () 
 {
+    fprintf (fp, "A: play_game\n");
     init_game ();
 
-    struct move mv;
-    mv.start_pos = 0;
-    mv.end_pos   = 0;
+    while (game_over () == FALSE && strncmp ("quit", str_buff, 4) != 0) { 
+        struct move mv;
+        mv.start_pos = 0;
+        mv.end_pos   = 0;
 
-    while (game_over () != TRUE && strcmp ("quit", str_buff) != 0) {
         /* Get user's move then parse it from coordinate notation into an array
-         * index. Loop until the move is valid.  */
+         * index. Loop until the move is valid. AI moves when player is black,
+         * parse move into coordinate notation and send to XBoard.  */
         do {
-            get_input ();
-            parse_move (&mv);
-            fprintf (fp, "R: %s\n", str_buff);
-        } while (strcmp ("quit", str_buff) != 0
-                 && make_move (curr_player, mv.start_pos, mv.end_pos) == FALSE);
-    
+            /* Player's move. Take input from XBoard.  */
+            if (curr_player == WPLAYER) {
+                get_input ();
+
+                if (strncmp ("quit", str_buff, 4) == 0) {
+                    break;
+                } else if (strncmp ("usermove ", str_buff, 9) == 0) { 
+                    parse_move (&mv, TRUE);
+                }
+            }
+
+            /* AI's move. Send info to AI and store his move in BEST_MOVE.  */
+             else {
+                fprintf (fp, "A: best_move\n");
+                best_move (&mv);
+            }
+        } while (make_move (curr_player, mv.start_pos, mv.end_pos) == FALSE);
+
+        /* Convert AI's move to coordinate notation and send move to XBoard.  */
+        if (curr_player == BPLAYER) {
+            unparse_move (&mv);
+            printf ("move %s\n", str_buff);
+            fprintf (fp, "A: sending \"move %s\"\n", str_buff);
+        }
+
         curr_player = opponent_player (curr_player);
     }
 }
@@ -201,9 +220,26 @@ void search_test ()
 }
 
 /* Convert coordinate notation of a move from STR_BUF to array index for
- * START_POS and END_POS.  */
-void parse_move (struct move *mv)
+ * MV->START_POS and MV->END_POS.  */
+void parse_move (struct move *mv, int playing_xboard)
 {
-    mv->start_pos = (str_buff[0] - 'a') + ((str_buff[1] - '1') * 16);
-    mv->end_pos   = (str_buff[2] - 'a') + ((str_buff[3] - '1') * 16);
+    if (playing_xboard == FALSE) {
+        mv->start_pos = (str_buff[0] - 'a') + ((str_buff[1] - '1') * 16);
+        mv->end_pos   = (str_buff[2] - 'a') + ((str_buff[3] - '1') * 16);
+    } else {
+        mv->start_pos = (str_buff[9] - 'a') + ((str_buff[10] - '1') * 16);
+        mv->end_pos   = (str_buff[11] - 'a') + ((str_buff[12] - '1') * 16);
+    }
+    fprintf (fp, "A: parse_move to %d - %d\n", mv->start_pos, mv->end_pos);
+}
+
+/* Convert MV->START_POS and MV->END_POS to coordinate notation in STR_BUFF.  */
+void unparse_move (struct move *mv)
+{
+    clean_buffer ();
+    str_buff[0] = (mv->start_pos & 7) + 'a';
+    str_buff[1] = (mv->start_pos >> 4) + '1';
+    str_buff[2] = (mv->end_pos & 7) + 'a';
+    str_buff[3] = (mv->end_pos >> 4) + '1';
+    fprintf (fp, "A: unparse_move to %s\n", str_buff);
 }
