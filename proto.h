@@ -40,6 +40,9 @@
 #define QUEEN_VAL   900
 #define KING_VAL    10000
 
+#define MATERIAL_WT 5
+#define POSITION_WT 2
+
 /* Null piece is 0, white pieces range 1 to 6, black pieces from -1 to -6.  */
 enum ch_piece { 
     chp_null = 0,
