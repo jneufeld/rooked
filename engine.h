@@ -1,3 +1,5 @@
+#define BUF_SIZE 128
+
 void clean_buffer ();
 void get_input ();
 void init_game ();
