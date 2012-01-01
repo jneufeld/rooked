@@ -4,6 +4,11 @@
 #define WPLAYER     0
 #define BPLAYER     1
 
+#define NEG_INF     -30000
+#define POS_INF     30000
+
+#define SEARCH_DEP  3
+
 #define BOARD_SIZE  128
 
 /* Using the 0x88 board representation, these values help compute the move
@@ -26,6 +31,14 @@
 #define MOVE_K_DLH      -18
 #define MOVE_K_ULH      14
 #define MOVE_K_ULV      31
+
+/* Values of each piece during move evaluation.  */
+#define PAWN_VAL    100
+#define KNIGHT_VAL  300
+#define BISHOP_VAL  300
+#define ROOK_VAL    500
+#define QUEEN_VAL   900
+#define KING_VAL    10000
 
 /* Null piece is 0, white pieces range 1 to 6, black pieces from -1 to -6.  */
 enum ch_piece { 
@@ -92,8 +105,13 @@ void init_game ();
 void play_game ();
 void play_test_game ();
 void play_ai_game ();
-void parse_move (struct move *);
+void search_test ();
+void parse_move (struct move *, int);
+void unparse_move (struct move *);
 
 /* Function prototypes for ai.c.  */
 void best_move (struct move *);
+int  abp_search (int, int, int, int);
+int  material_score ();
+int  positional_score ();
 int  board_utility ();
