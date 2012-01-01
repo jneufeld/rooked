@@ -1,29 +1,33 @@
 #include "ai.h"
 #include "board.h"
 
-int board[BOARD_SIZE];  // from board.c
+int board[BOARD_SIZE]; /* From board.c.  */
 
-/* Return the best move the AI can make.  */
+/* Search and evaluate AI's moves. MV->START_POS and MV->END_POS store AI's best
+ * move.  */
 void best_move (struct move *mv)
 {
     int legal_moves[BOARD_SIZE];
     int curr_util = NEG_INF, i;
 
-    /* For each black piece on the board, generate its legal moves and evaluate
-     * its utility. Track the move with the greatest utility.  */
+    /* Generate legal moves for each black piece.  */
     for (i = 0; i < BOARD_SIZE; i++) {
         if (board[i] < chp_null) {
             init_moves_board (legal_moves);
             gen_legal_moves (BPLAYER, i, legal_moves);
 
+            /* For each legal move, evaluate subsequent moves. If this move
+             * leads to current best score, save it.  */
             int j;
             for (j = 0; j < BOARD_SIZE; j++) {
                 if (legal_moves[j] == TRUE) {
+                    /* Make move and evaluate subsequent moves.  */
                     int attacked_piece = move_piece (i, j);
                     int move_util = -1 * abp_search (WPLAYER, SEARCH_DEP - 1, 
                         NEG_INF, POS_INF);
                     unmove_piece (i, j, attacked_piece);
 
+                    /* If move is best yet, save it.  */
                     if (move_util > curr_util) {
                         mv->start_pos = i;
                         mv->end_pos   = j;
@@ -55,6 +59,8 @@ int abp_search (int player, int depth, int alpha, int beta)
                     int attacked_piece = move_piece (i, j);
                     int move_util = 0;
 
+                    /* If maximum depth reached evaluate the board. Else,
+                     * continue search.  */
                     if (depth == 0) {
                         move_util = (-1 * mod) * board_utility ();
                     } else {
@@ -62,6 +68,9 @@ int abp_search (int player, int depth, int alpha, int beta)
                             depth - 1, -1 * beta, -1 * alpha);
                     }
                     
+                    /* If this move's utility is a new maximum, save it. Alter
+                     * alpha value and check against beta to potentially short
+                     * circuit the search.  */
                     if (move_util > curr_util) {
                         curr_util = move_util;
                     }
@@ -134,8 +143,8 @@ int material_score ()
         }
     }
 
-    /* Simple evaluation function: each piece type has a value, sum values and
-     * return black's score minus white's score.  */
+    /* Material score is the number of each piece times it's value for each
+     * player, then subtract white's score from black's score.  */
     int white_score = (wt_pawn * PAWN_VAL) + (wt_rook * ROOK_VAL) + (wt_bishop *
         BISHOP_VAL) + (wt_knight * KNIGHT_VAL) + (wt_queen * QUEEN_VAL) +
         (wt_king * KING_VAL);
