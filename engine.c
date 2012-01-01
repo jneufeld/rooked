@@ -5,8 +5,6 @@
 #include "engine.h"
 #include "board.h"
 
-#define BUF_SIZE 128
-
 FILE* fp;
 char  str_buff[BUF_SIZE];
 int   curr_player;
@@ -14,6 +12,8 @@ int   curr_player;
 /* XBoard starts engine from here.  */
 int main (int argc, char *argv[]) 
 {
+    /* Open a logging file that records everything received from XBoard and some
+     * output sent to XBoard.  */
     fp = fopen ("iolog.txt", "w");
     if (fp == NULL) {
         return -1;
@@ -23,35 +23,53 @@ int main (int argc, char *argv[])
     setbuf (stdout, NULL);
     setbuf (stdin, NULL);
 
-    /* The -c switch plays a command line game, good for debugging.  */
+    /* -c for command-line test game, 2-player.  */
     if (argc >= 2 && strncmp (argv[1], "-c", 2) == 0) {
         play_test_game ();
         return 0;
-    } else if (argc >= 2 && strncmp (argv[1], "-a", 2) == 0) {
+    } 
+
+    /* -a for command-line test game vs AI.  */
+    else if (argc >= 2 && strncmp (argv[1], "-a", 2) == 0) {
         play_ai_game ();
         return 0;
-    } else if (argc >= 2 && strncmp (argv[1], "-t", 2) == 0) {
+    } 
+
+    /* -t for a search test. Useful to check search time.  */
+    else if (argc >= 2 && strncmp (argv[1], "-t", 2) == 0) {
         search_test ();
         return 0;
-    } else if (argc >= 2) {
+    } 
+
+    /* If command-line arguments aren't nicely formatted, present usage.  */
+    else if (argc >= 2) {
         printf ("Argument(s) not recognized.\n");
         printf ("\t-c play command line 2-player game\n");
         printf ("\t-a play command line 2-player game vs AI\n");
         printf ("\t-t run a test search\n");
         printf ("\tno arguments for regular XBoard game\n");
         return -1;
-    } else {
+    } 
+
+    /* No arguments usually means jgn-chess is being invoked by XBoard.  */
+    else {
         while (strncmp ("quit", str_buff, 4) != 0) { 
             get_input ();
 
-            /* Catch XBoard's messages from stdin.  */
+            /* XBoard requests new game.  */
             if (strncmp ("new", str_buff, 3) == 0) { 
                 play_game ();
-            } else if (strncmp ("protover 2", str_buff, 10) == 0) { 
+            } 
+
+            /* Send features list to XBoard. Don't alter this, see XBoard
+             * documentation if you want to send different features.  */ 
+            else if (strncmp ("protover 2", str_buff, 10) == 0) { 
                 printf ("feature myname=\"jgn-chess\" usermove=1 sigint=0 done=1\n");
             }
         }
     }
+
+    /* Close logging file and exit cleanly.  */
     fclose (fp);
     return 0;
 }
@@ -71,8 +89,15 @@ void clean_buffer ()
 void get_input () 
 {
     clean_buffer ();
+
     int ch, i = 0;
     while ((ch = getchar ()) != '\n') {
+        /* If XBoard sends an unusually large string, record it and print an
+         * error to the log file.  */
+        if (i > BUF_SIZE) {
+            fprintf (fp, "E: XBoard sent huge string:\n * %s", str_buff);
+            break;
+        }
         str_buff[i++] = ch;
     }
     fprintf (fp, "R: %s\n", str_buff);
@@ -213,7 +238,8 @@ void play_game ()
     }
 }
 
-/* Run some search tests.  */
+/* Run a dummy search. Nice to checking how long it takes to search to some
+ * depth.  */
 void search_test ()
 {
     printf ("Beginning search test to depth %d...\n", SEARCH_DEP);
