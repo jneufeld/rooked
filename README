@@ -1,19 +1,15 @@
-=== Quick Intro ===
-I started hacking this up in the summer but since school started I haven't had
-any time to finish it. The engine is somewhat finished but there's no AI yet.
-It's designed to hook up with XBoard, but there's a silly command line version
-that can be used to help debugging. Heads up, this isn't very functional.
-
-A lot of the code needs to be chopped. Making an engine that understands the
-rules of chess is tricky, as it turns out, so there's some ugly code up right
-now. Sorry :(. And yes, there are far too many comments.
+=== Description ===
+This is a small chess engine and AI I wrote for kicks. It's designed to work
+with XBoard (run with ./jgn-chess) but has silly command line abilities for
+2-player and AI games.
 
 === Goals ===
-Nothing too fancy, but a simple negascout implementation for the AI is what I
-want. I don't want to implement en passent and castling until I have a working
-AI, because that's more tedious and boring code -- there's enough of that in the
-engine already.
+Simple board that supports most legal moves (not castling until I'm really
+bored), small move generator and a simple evaulation function. I'd like to
+optimize move ordering later on so alpha-beta pruning is more effective. In the
+end I'd like the AI to be better than I am. So far, it doesn't do too well.
 
 === TODO ===
- * Implement game_over
- * Begin AI, negascout
+ * Add pawn promotion to board.c
+ * Implement positional evaluation to ai.c
+ * Cleanup/split proto.h and redo makefile
