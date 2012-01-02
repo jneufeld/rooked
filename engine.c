@@ -59,7 +59,7 @@ int main (int argc, char *argv[])
         return -1;
     } 
 
-    /* No arguments usually means jgn-chess is being invoked by XBoard.  */
+    /* No arguments usually means Rooked is being invoked by XBoard.  */
     else {
         while (strncmp ("quit", str_buff, 4) != 0) { 
             get_input ();
@@ -72,7 +72,7 @@ int main (int argc, char *argv[])
             /* Send features list to XBoard. Don't alter this, see XBoard
              * documentation if you want to send different features.  */ 
             else if (strncmp ("protover 2", str_buff, 10) == 0) { 
-                printf ("feature myname=\"jgn-chess\" usermove=1 sigint=0 done=1\n");
+                printf ("feature myname=\"Rooked\" usermove=1 sigint=0 done=1\n");
             }
         }
     }

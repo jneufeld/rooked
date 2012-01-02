@@ -1,0 +1,3 @@
+# I use this to run Rooked. You'll have to change the path to wherever you have
+# Rooked installed.
+xboard -cp -fd "$HOME/prog/c/ai/rooked " -fcp "./engine"

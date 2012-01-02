@@ -1,6 +1,6 @@
 === Description ===
 This is a small chess engine and AI I wrote for kicks. It's designed to work
-with XBoard (run with ./jgn-chess) but has silly command line abilities for
+with XBoard (run with ./rooked) but has silly command line abilities for
 2-player and AI games.
 
 === Goals ===
