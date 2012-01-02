@@ -7,5 +7,6 @@ void play_game ();
 void play_test_game ();
 void play_ai_game ();
 void search_test ();
+void eval_test ();
 void parse_move (struct move *, int);
 void unparse_move (struct move *);
