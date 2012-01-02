@@ -11,5 +11,5 @@ end I'd like the AI to be better than I am. So far, it doesn't do too well.
 
 === TODO ===
  * Add pawn promotion to board.c
- * Implement positional evaluation to ai.c
- * Cleanup/split proto.h and redo makefile
+ * Add endgame evaluation/more aggressive mating late game
+ * Continue strengthening early and midgame evaluation
