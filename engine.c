@@ -5,9 +5,10 @@
 #include "engine.h"
 #include "board.h"
 
-FILE* fp;
+FILE *fp;
 char  str_buff[BUF_SIZE];
 int   curr_player;
+extern int board[BOARD_SIZE];  /* From board.c, for debugging move evaluation.  */
 
 /* XBoard starts engine from here.  */
 int main (int argc, char *argv[]) 
@@ -38,6 +39,13 @@ int main (int argc, char *argv[])
     /* -t for a search test. Useful to check search time.  */
     else if (argc >= 2 && strncmp (argv[1], "-t", 2) == 0) {
         search_test ();
+        return 0;
+    } 
+
+    /* -e for an evaluation test. Displays material and positional scores for a
+     * variety of board positions.  */
+    else if (argc >= 2 && strncmp (argv[1], "-e", 2) == 0) {
+        eval_test ();
         return 0;
     } 
 
@@ -198,6 +206,7 @@ void play_ai_game ()
 void play_game () 
 {
     fprintf (fp, "A: play_game\n");
+    extern int board[BOARD_SIZE];
     init_game ();
 
     while (game_over () == FALSE && strncmp ("quit", str_buff, 4) != 0) { 
@@ -234,6 +243,15 @@ void play_game ()
             fprintf (fp, "A: sending \"move %s\"\n", str_buff);
         }
 
+        /* To help with making a better evaluation function, print contents of
+         * BOARD to log file.  */
+        fprintf (fp, "\n\n * --- *\n");
+        int i;
+        for (i = 0; i < BOARD_SIZE; i++) {
+            fprintf (fp, "%d", board[i]);
+        }
+        fprintf (fp, "\n * --- *\n\n");
+
         curr_player = opponent_player (curr_player);
     }
 }
@@ -246,6 +264,65 @@ void search_test ()
     init_game ();
     abp_search (WPLAYER, SEARCH_DEP, NEG_INF, POS_INF);
     printf ("End of search.\n");
+}
+
+/* Print material and position scores for a variety of test boards to learn more
+ * about what the evaluation function is doing. Great for tuning.  */
+void eval_test ()
+{
+    /* Board b2 has black's queen move into an insane position.  */
+    char *b1 = "4235632400000000111100110000000000000100000000000000100-5000000000000-1000000000000000000000000000-1-1-1-10-1-1-100000000-4-2-30-6-3-2-400000000x";
+    int c, i = 0, n = 0;
+    while ((c = b1[i]) != 'x') {
+        if (c == '-') {
+            c = b1[++i];
+            c = c - '0';
+            c *= -1;
+        } else {
+            c = c - '0';
+        }
+        board[n++] = c;
+        i++;
+    }
+    print_board ();
+    printf ("material score: %d\npositional score: %d\n", material_score (),
+        positional_score ());
+
+    /* Board b2 has black considering losing it's knight to a pawn.  */
+    char *b2 = "4235632400000000111101110000000000000000000000000000000000000000000000000000000000-20010000000000-1-1-1-1-1-1-1-100000000-40-3-5-6-30-400000000x";
+    i = 0; n = 0;
+    while ((c = b2[i]) != 'x') {
+        if (c == '-') {
+            c = b2[++i];
+            c = c - '0';
+            c *= -1;
+        } else {
+            c = c - '0';
+        }
+        board[n++] = c;
+        i++;
+    }
+    print_board ();
+    printf ("material score: %d\npositional score: %d\n",
+        material_score () * MATERIAL_WT, positional_score () * POSITION_WT);
+
+    /* Black moves to attack white's queen but loses bishop next move.  */
+    char *b3 = "420060240000000010100111000000000101300000000000000000500000000003-2-100000000000000-20000000000000-1-1-10-1-1-1-100000000-400-5-6-30-400000000";
+    i = 0; n = 0;
+    while ((c = b3[i]) != 'x') {
+        if (c == '-') {
+            c = b3[++i];
+            c = c - '0';
+            c *= -1;
+        } else {
+            c = c - '0';
+        }
+        board[n++] = c;
+        i++;
+    }
+    print_board ();
+    printf ("material score: %d\npositional score: %d\n",
+        material_score () * MATERIAL_WT, positional_score () * POSITION_WT);
 }
 
 /* Convert coordinate notation of a move from STR_BUF to array index for
