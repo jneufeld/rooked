@@ -7,13 +7,13 @@
 #define KING_VAL    10000
 
 /* Weights for material and positional evaluation.  */
-#define MATERIAL_WT 5
+#define MATERIAL_WT 3
 #define POSITION_WT 2
 
 #define NEG_INF     -30000
 #define POS_INF     30000
 
-#define SEARCH_DEP  3
+#define SEARCH_DEP  2
 
 struct move {
     int start_pos;
@@ -22,6 +22,7 @@ struct move {
 
 void best_move (struct move *);
 int  abp_search (int, int, int, int);
+int  board_utility ();
 int  material_score ();
 int  positional_score ();
-int  board_utility ();
+int  knight_pos_score (int, int);
