@@ -1,3 +1,0 @@
-# Use this to invoke jgn-chess with XBoard
-# Set the directly to your installation folder
-xboard -cp -fd "$HOME/prog/c/ai/jgnchess" -fcp "./engine"
