@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "board.h"
 
-extern int board[BOARD_SIZE];
+int board[BOARD_SIZE];
 int wking_pos;
 int bking_pos;
 int checkmate;
@@ -45,8 +45,8 @@ void reset_board ()
 void print_board () 
 {
     /* Represent each piece by a character. Capitalized pieces are white.  */
-    char piece_codes[] = { 'k', 'q', 'b', 'n', 'r', 'p', ' ', 'P', 'R', 'N', 
-    'B', 'Q', 'K' };
+    char piece_codes[] = { 'k', 'q', 'r', 'n', 'b', 'p', ' ', 'P', 'B', 'N', 
+    'R', 'Q', 'K' };
 
     printf ("\n  | a | b | c | d | e | f | g | h |\n");
     printf ("-----------------------------------\n");
