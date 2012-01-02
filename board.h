@@ -32,16 +32,16 @@ enum ch_piece {
     chp_null = 0,
 
     chp_wpawn = 1,
-    chp_wrook,
     chp_wknight,
     chp_wbishop,
+    chp_wrook,
     chp_wqueen,
     chp_wking,
 
     chp_bpawn   = -1,
-    chp_brook   = -2,
-    chp_bknight = -3,
-    chp_bbishop = -4,
+    chp_bknight = -2,
+    chp_bbishop = -3,
+    chp_brook   = -4,
     chp_bqueen  = -5,
     chp_bking   = -6
 };
